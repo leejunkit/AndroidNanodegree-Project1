@@ -43,7 +43,10 @@ public class MovieGridAdapter extends ArrayAdapter<Movie> {
 
         // find the ImageView
         ImageView iv = (ImageView) convertView.findViewById(R.id.imageView);
-        Picasso.with(getContext()).load(m.getPosterURL()).into(iv);
+        Picasso.with(getContext())
+                .load(m.getPosterURL())
+                .placeholder(R.drawable.poster_placeholder)
+                .into(iv);
 
         return convertView;
     }
