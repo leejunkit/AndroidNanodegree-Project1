@@ -44,9 +44,16 @@ public class MovieDetailFragment extends Fragment {
 
         // find the Release Date TextView
         TextView releaseDateTextView = (TextView)rootView.findViewById(R.id.movie_release_date_text_view);
-        Calendar c = Calendar.getInstance();
-        c.setTime(m.getReleaseDate());
-        releaseDateTextView.setText(String.valueOf(c.get(Calendar.YEAR)));
+        java.util.Date releaseDate = m.getReleaseDate();
+        if (null != releaseDate) {
+            Calendar c = Calendar.getInstance();
+            c.setTime(m.getReleaseDate());
+            releaseDateTextView.setText(String.valueOf(c.get(Calendar.YEAR)));
+        }
+
+        else {
+            releaseDateTextView.setText("(no release year)");
+        }
 
         // find the Rating TextView
         TextView ratingTextView = (TextView)rootView.findViewById(R.id.movie_rating_text_view);

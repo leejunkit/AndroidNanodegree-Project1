@@ -27,11 +27,18 @@ public class GridViewFragment extends Fragment
         implements AdapterView.OnItemClickListener {
 
     private final String LOG_TAG = GridViewFragment.class.getSimpleName();
+    private GridView mGridView;
     private MovieGridAdapter mAdapter;
 
     private SharedPreferences mPrefs;
     private SharedPreferences.OnSharedPreferenceChangeListener mListener;
     private EndlessScrollListener mEndlessScrollListener;
+
+    // Ugly stateful flag to indicate if we should reload data when Sort changes.
+    // For some reason, if we initiate the reload in the preference
+    // change event handler, it screws up the scroll
+    // position of the GridView.
+    private Boolean mShouldReloadData = false;
 
     public GridViewFragment() {
     }
@@ -40,6 +47,15 @@ public class GridViewFragment extends Fragment
     public void onDestroy(){
         super.onDestroy();
         mPrefs.unregisterOnSharedPreferenceChangeListener(mListener);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mShouldReloadData) {
+            loadMoviesAtPage(1);
+            mShouldReloadData = false;
+        }
     }
 
     @Override
@@ -53,8 +69,8 @@ public class GridViewFragment extends Fragment
                 Log.d(LOG_TAG, "Preferences changed! Will reload data set.");
                 mAdapter.clear();
                 mAdapter.notifyDataSetChanged();
-                loadMoviesAtPage(1);
                 mEndlessScrollListener.invalidate();
+                mShouldReloadData = true;
             }
         };
 
@@ -63,11 +79,11 @@ public class GridViewFragment extends Fragment
         View rootView = inflater.inflate(R.layout.fragment_movie_grid, container, false);
 
         // pull out the GridView
-        GridView gridView = (GridView) rootView.findViewById(R.id.gridView);
+        mGridView = (GridView) rootView.findViewById(R.id.gridView);
 
         // set the adapter
         mAdapter = new MovieGridAdapter(getActivity(), new ArrayList<Movie>());
-        gridView.setAdapter(mAdapter);
+        mGridView.setAdapter(mAdapter);
 
         // set the endless scroll listener
         mEndlessScrollListener = new EndlessScrollListener() {
@@ -77,10 +93,10 @@ public class GridViewFragment extends Fragment
             }
         };
 
-        gridView.setOnScrollListener(mEndlessScrollListener);
+        mGridView.setOnScrollListener(mEndlessScrollListener);
 
         // set the onItemClick event
-        gridView.setOnItemClickListener(this);
+        mGridView.setOnItemClickListener(this);
 
         // load the first page
         loadMoviesAtPage(1);
@@ -92,7 +108,6 @@ public class GridViewFragment extends Fragment
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // fragments are supposed to be reusable views, so we put the
         // showMovieDetail method in the Activity instead
-
         MovieGridActivity activity = (MovieGridActivity) getActivity();
         activity.showDetailViewForMovie(mAdapter.getItem(position));
     }
