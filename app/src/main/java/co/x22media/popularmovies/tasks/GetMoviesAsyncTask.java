@@ -9,7 +9,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.text.DateFormat;
 
 import co.x22media.popularmovies.helpers.JSONHTTPHelper;
 import co.x22media.popularmovies.models.Movie;
@@ -58,6 +61,8 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
     }
 
     private Movie[] parseJsonObjectToMovies(JSONObject obj) throws JSONException {
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+
         JSONArray resultsArray = obj.getJSONArray("results");
 
         ArrayList<Movie> movies = new ArrayList<Movie>();
@@ -68,8 +73,23 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
             // parse the poster URL
             String basePosterURL = "http://image.tmdb.org/t/p/w185";
             String posterURLString = basePosterURL + result.getString("poster_path");
-            Movie m = new Movie(result.getInt("id"), posterURLString);
 
+            // prepare the other variables
+            String title = result.getString("title");
+            String synopsis = result.getString("overview");
+            double userRating = result.getDouble("vote_average");
+
+            // parse release date from String to Date
+            java.util.Date releaseDate = null;
+            try {
+               releaseDate = df.parse(result.getString("release_date"));
+            }
+
+            catch (ParseException e) {
+                Log.w(LOG_TAG, "Cannot parse release_date, skipping.", e);
+            }
+
+            Movie m = new Movie(result.getInt("id"), title, posterURLString, synopsis, userRating, releaseDate);
             movies.add(m);
         }
 

@@ -7,7 +7,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import co.x22media.popularmovies.fragments.GridViewFragment;
-
+import co.x22media.popularmovies.models.Movie;
 
 public class MovieGridActivity extends ActionBarActivity {
     private final String LOG_TAG = GridViewFragment.class.getSimpleName();
@@ -45,5 +45,11 @@ public class MovieGridActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void showDetailViewForMovie(Movie movie) {
+        Intent i = new Intent(this, co.x22media.popularmovies.MovieDetailActivity.class);
+        i.putExtra("movieParam", movie);
+        startActivity(i);
     }
 }

@@ -13,6 +13,7 @@ import android.widget.GridView;
 
 import java.util.ArrayList;
 
+import co.x22media.popularmovies.MovieGridActivity;
 import co.x22media.popularmovies.R;
 import co.x22media.popularmovies.adapters.EndlessScrollListener;
 import co.x22media.popularmovies.adapters.MovieGridAdapter;
@@ -89,7 +90,11 @@ public class GridViewFragment extends Fragment
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.i(LOG_TAG, "Item clicked!");
+        // fragments are supposed to be reusable views, so we put the
+        // showMovieDetail method in the Activity instead
+
+        MovieGridActivity activity = (MovieGridActivity) getActivity();
+        activity.showDetailViewForMovie(mAdapter.getItem(position));
     }
 
     private Boolean loadMoviesAtPage(int page) {
