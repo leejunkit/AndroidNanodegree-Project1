@@ -1,5 +1,6 @@
 package co.x22media.popularmovies;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -9,6 +10,7 @@ import co.x22media.popularmovies.fragments.GridViewFragment;
 
 
 public class MovieGridActivity extends ActionBarActivity {
+    private final String LOG_TAG = GridViewFragment.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,8 @@ public class MovieGridActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent i = new Intent(this, co.x22media.popularmovies.SettingsActivity.class);
+            startActivity(i);
             return true;
         }
 

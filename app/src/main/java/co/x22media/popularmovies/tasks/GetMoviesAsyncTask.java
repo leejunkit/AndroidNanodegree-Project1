@@ -22,18 +22,20 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
     private final String BASE_URL_STRING = "http://api.themoviedb.org/3/discover/movie";
 
     private int mRequestedPage;
+    private String mSortOrder;
     private GetMoviesTaskCallback mCallback;
 
 
-    public GetMoviesAsyncTask(int page, GetMoviesTaskCallback callback) {
+    public GetMoviesAsyncTask(int page, String sortOrder, GetMoviesTaskCallback callback) {
         mRequestedPage = page;
+        mSortOrder = sortOrder;
         mCallback = callback;
     }
 
     @Override
     protected Movie[] doInBackground(Void... params) {
         Uri.Builder builder = Uri.parse(BASE_URL_STRING).buildUpon();
-        builder.appendQueryParameter("sort_by", "popularity.desc")
+        builder.appendQueryParameter("sort_by", mSortOrder)
                 .appendQueryParameter("page", String.valueOf(mRequestedPage))
                 .appendQueryParameter("api_key", "***REMOVED***");
 

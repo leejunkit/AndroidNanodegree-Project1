@@ -1,0 +1,20 @@
+<resources>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Sort Order settings -->
+    <string name="pref_header_general">General</string>
+    <string name="pref_sort_order_label">Sort Movies</string>
+    <string name="pref_sort_order_key">co.x22media.popularmovies.sortorder</string>
+
+    <string-array name="pref_sort_order_titles">
+        <item>Most Popular</item>
+        <item>Highest Rated</item>
+    </string-array>
+
+    <string-array name="pref_sort_order_values">
+        <item>popularity.desc</item>
+        <item>vote_average.desc</item>
+    </string-array>
+
+    <string name="pref_sort_order_values_default">popularity.desc</string>
+</resources>
