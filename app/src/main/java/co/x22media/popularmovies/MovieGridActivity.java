@@ -12,6 +12,7 @@ import android.widget.GridView;
 
 import java.util.ArrayList;
 
+import co.x22media.popularmovies.adapters.EndlessScrollListener;
 import co.x22media.popularmovies.adapters.MovieGridAdapter;
 import co.x22media.popularmovies.models.Movie;
 import co.x22media.popularmovies.tasks.GetMoviesAsyncTask;
@@ -70,11 +71,28 @@ public class MovieGridActivity extends ActionBarActivity {
             // pull out the GridView
             GridView gridView = (GridView) rootView.findViewById(R.id.gridView);
 
-
+            // set the adapter
             mAdapter = new MovieGridAdapter(getActivity(), new ArrayList<Movie>());
             gridView.setAdapter(mAdapter);
 
-            new GetMoviesAsyncTask(new GetMoviesAsyncTask.GetMoviesTaskCallback() {
+            // set the endless scroll listener
+            gridView.setOnScrollListener(new EndlessScrollListener() {
+                @Override
+                public boolean onLoadMore(int page, int totalItemsCount) {
+                    new GetMoviesAsyncTask(page, new GetMoviesAsyncTask.GetMoviesTaskCallback() {
+                        @Override
+                        public void onTaskDone(Movie[] movies) {
+                            for (Movie m : movies) {
+                                mAdapter.add(m);
+                            }
+                        }
+                    }).execute();
+
+                    return true;
+                }
+            });
+
+            new GetMoviesAsyncTask(1, new GetMoviesAsyncTask.GetMoviesTaskCallback() {
                 @Override
                 public void onTaskDone(Movie[] movies) {
                     for (Movie m : movies) {
@@ -82,8 +100,6 @@ public class MovieGridActivity extends ActionBarActivity {
                     }
                 }
             }).execute();
-
-
 
             return rootView;
         }
