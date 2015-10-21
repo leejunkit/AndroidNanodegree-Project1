@@ -56,12 +56,20 @@ public class MovieDetailFragment extends Fragment {
         }
 
         // find the Rating TextView
+        // TODO: Move "out of 10" to the strings.xml file
         TextView ratingTextView = (TextView)rootView.findViewById(R.id.movie_rating_text_view);
         ratingTextView.setText(String.valueOf(m.getUserRating()) + " out of 10");
 
         // find the Synopsis TextView
         TextView synopsisTextView = (TextView)rootView.findViewById(R.id.movie_synopsis_text_view);
-        synopsisTextView.setText(m.getSynopsis());
+        if (null != m.getSynopsis()) {
+            synopsisTextView.setText(m.getSynopsis());
+        }
+
+        else {
+            synopsisTextView.setText("(no synopsis found)");
+        }
+
         return rootView;
     }
 }

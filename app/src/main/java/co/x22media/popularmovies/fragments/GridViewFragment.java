@@ -61,7 +61,7 @@ public class GridViewFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        // TODO: Handle when there is no Internet connectivity
         mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
