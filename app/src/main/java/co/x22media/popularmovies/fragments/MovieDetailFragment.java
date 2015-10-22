@@ -52,13 +52,12 @@ public class MovieDetailFragment extends Fragment {
         }
 
         else {
-            releaseDateTextView.setText("(no release year)");
+            releaseDateTextView.setText(getString(R.string.null_release_date_label));
         }
 
         // find the Rating TextView
-        // TODO: Move "out of 10" to the strings.xml file
         TextView ratingTextView = (TextView)rootView.findViewById(R.id.movie_rating_text_view);
-        ratingTextView.setText(String.valueOf(m.getUserRating()) + " out of 10");
+        ratingTextView.setText(String.valueOf(m.getUserRating()) + getString(R.string.rating_out_of_label));
 
         // find the Synopsis TextView
         TextView synopsisTextView = (TextView)rootView.findViewById(R.id.movie_synopsis_text_view);
@@ -67,7 +66,7 @@ public class MovieDetailFragment extends Fragment {
         }
 
         else {
-            synopsisTextView.setText("(no synopsis found)");
+            synopsisTextView.setText(getString(R.string.null_synopsis_label));
         }
 
         return rootView;

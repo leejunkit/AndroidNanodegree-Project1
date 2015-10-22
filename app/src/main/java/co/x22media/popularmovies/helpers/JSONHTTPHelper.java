@@ -27,7 +27,7 @@ public class JSONHTTPHelper {
         mUrl = new URL(urlString);
     }
 
-    public JSONObject executeForJSONResponse() {
+    public JSONObject executeForJSONResponse() throws IOException {
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
 
@@ -66,10 +66,6 @@ public class JSONHTTPHelper {
 
             // attempt to parse JSON
             return new JSONObject(buffer.toString());
-        }
-
-        catch (IOException e) {
-            Log.e(LOG_TAG, "IOException: ", e);
         }
 
         catch (JSONException e) {

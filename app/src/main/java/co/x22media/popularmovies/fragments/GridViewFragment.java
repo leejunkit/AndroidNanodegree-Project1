@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -27,6 +28,7 @@ public class GridViewFragment extends Fragment
         implements AdapterView.OnItemClickListener {
 
     private final String LOG_TAG = GridViewFragment.class.getSimpleName();
+    private TextView mErrorView;
     private GridView mGridView;
     private MovieGridAdapter mAdapter;
 
@@ -78,6 +80,9 @@ public class GridViewFragment extends Fragment
 
         View rootView = inflater.inflate(R.layout.fragment_movie_grid, container, false);
 
+        // pull out the error view
+        mErrorView = (TextView) rootView.findViewById(R.id.error_textview);
+
         // pull out the GridView
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
 
@@ -117,13 +122,30 @@ public class GridViewFragment extends Fragment
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String preferredSortOrder = prefs.getString(getString(R.string.pref_sort_order_key),
                 getString(R.string.pref_sort_order_values_default));
-        Log.d(LOG_TAG, "Page is " + String.valueOf(page));
+
         new GetMoviesAsyncTask(page, preferredSortOrder, new GetMoviesAsyncTask.GetMoviesTaskCallback() {
             @Override
-            public void onTaskDone(Movie[] movies) {
-                for (Movie m : movies) {
-                    mAdapter.add(m);
+            public void onTaskDone(Exception e, Movie[] movies) {
+                if (null != e) {
+                    Log.w(LOG_TAG, "Exception occurred attempting to communicate with API.", e);
+
+                    // Only show error view if there is no items in the grid view.
+                    if (mAdapter.getCount() == 0) {
+                        mErrorView.setVisibility(View.VISIBLE);
+                        return;
+                    }
                 }
+
+                mErrorView.setVisibility(View.GONE);
+
+                // If there is an error, movies will be null.
+                // We'll need to handle that.
+                if (null != movies) {
+                    for (Movie m : movies) {
+                        mAdapter.add(m);
+                    }
+                }
+
             }
         }).execute();
 

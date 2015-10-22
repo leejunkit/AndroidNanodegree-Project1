@@ -8,11 +8,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.text.DateFormat;
 
 import co.x22media.popularmovies.helpers.JSONHTTPHelper;
 import co.x22media.popularmovies.models.Movie;
@@ -26,6 +27,8 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
 
     private int mRequestedPage;
     private String mSortOrder;
+
+    private Exception mHttpException;
     private GetMoviesTaskCallback mCallback;
 
 
@@ -51,6 +54,12 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
 
         catch (MalformedURLException e) {
             Log.e(LOG_TAG, "MalformedURLException: ", e);
+        }
+
+        catch (IOException e) {
+            // Bubble up the exception to allow the UI to display an error message
+            // Is this the best way to do it?
+            mHttpException = e;
         }
 
         catch (JSONException e) {
@@ -98,10 +107,11 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
 
     @Override
     protected void onPostExecute(Movie[] movies) {
-        this.mCallback.onTaskDone(movies);
+        this.mCallback.onTaskDone(mHttpException, movies);
+
     }
 
     public interface GetMoviesTaskCallback {
-        public void onTaskDone(Movie[] movies);
+        public void onTaskDone(Exception e, Movie[] movies);
     }
 }
