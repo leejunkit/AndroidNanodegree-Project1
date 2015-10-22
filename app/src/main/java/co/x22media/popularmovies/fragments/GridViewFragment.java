@@ -184,12 +184,16 @@ public class GridViewFragment extends Fragment
 
     private Boolean loadMoviesAtPage(int page) {
         Log.d(LOG_TAG, "Load movies at page " + page);
+
+        // get the API key
+        String apiKey = getString(R.string.themoviedb_api_key);
+
         // get the saved sort order
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String preferredSortOrder = prefs.getString(getString(R.string.pref_sort_order_key),
                 getString(R.string.pref_sort_order_values_default));
 
-        new GetMoviesAsyncTask(page, preferredSortOrder, new GetMoviesAsyncTask.GetMoviesTaskCallback() {
+        new GetMoviesAsyncTask(apiKey, page, preferredSortOrder, new GetMoviesAsyncTask.GetMoviesTaskCallback() {
             @Override
             public void onTaskDone(Exception e, Movie[] movies) {
                 if (null != e) {

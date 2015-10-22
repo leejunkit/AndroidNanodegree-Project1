@@ -27,12 +27,14 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
 
     private int mRequestedPage;
     private String mSortOrder;
+    private String mApiKey;
 
     private Exception mHttpException;
     private GetMoviesTaskCallback mCallback;
 
 
-    public GetMoviesAsyncTask(int page, String sortOrder, GetMoviesTaskCallback callback) {
+    public GetMoviesAsyncTask(String apiKey, int page, String sortOrder, GetMoviesTaskCallback callback) {
+        mApiKey = apiKey;
         mRequestedPage = page;
         mSortOrder = sortOrder;
         mCallback = callback;
@@ -41,9 +43,10 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
     @Override
     protected Movie[] doInBackground(Void... params) {
         Uri.Builder builder = Uri.parse(BASE_URL_STRING).buildUpon();
+
         builder.appendQueryParameter("sort_by", mSortOrder)
                 .appendQueryParameter("page", String.valueOf(mRequestedPage))
-                .appendQueryParameter("api_key", "***REMOVED***");
+                .appendQueryParameter("api_key", mApiKey);
 
         try {
             JSONHTTPHelper jsonHttpHelper = new JSONHTTPHelper("GET", builder.build().toString());
