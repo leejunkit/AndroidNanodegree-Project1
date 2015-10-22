@@ -1,6 +1,12 @@
 package co.x22media.popularmovies.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -35,12 +41,15 @@ public class GridViewFragment extends Fragment
     private SharedPreferences mPrefs;
     private SharedPreferences.OnSharedPreferenceChangeListener mListener;
     private EndlessScrollListener mEndlessScrollListener;
+    private BroadcastReceiver mInternetConnectivityStateListener;
 
     // Ugly stateful flag to indicate if we should reload data when Sort changes.
     // For some reason, if we initiate the reload in the preference
     // change event handler, it screws up the scroll
     // position of the GridView.
     private Boolean mShouldReloadData = false;
+
+    private Boolean mShouldReloadDataWhenConnectivityIsPresent = false;
 
     public GridViewFragment() {
     }
@@ -54,6 +63,23 @@ public class GridViewFragment extends Fragment
     @Override
     public void onResume() {
         super.onResume();
+
+        // register a broadcast receiver to check Internet connectivity
+        registerBroadcastReceiverForInternetConnectivity();
+
+        // register a listener for shared preference changes
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                Log.d(LOG_TAG, "Preferences changed! Will reload data set.");
+                invalidateAndReloadDataSet();
+            }
+        };
+
+        mPrefs.registerOnSharedPreferenceChangeListener(mListener);
+
+        // reload data set if necessary
         if (mShouldReloadData) {
             loadMoviesAtPage(1);
             mShouldReloadData = false;
@@ -61,22 +87,14 @@ public class GridViewFragment extends Fragment
     }
 
     @Override
+    public void onPause() {
+        unregisterBroadcastReceiverForInternetConnectivity();
+        super.onPause();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // TODO: Handle when there is no Internet connectivity
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                Log.d(LOG_TAG, "Preferences changed! Will reload data set.");
-                mAdapter.clear();
-                mAdapter.notifyDataSetChanged();
-                mEndlessScrollListener.invalidate();
-                mShouldReloadData = true;
-            }
-        };
-
-        mPrefs.registerOnSharedPreferenceChangeListener(mListener);
 
         View rootView = inflater.inflate(R.layout.fragment_movie_grid, container, false);
 
@@ -117,7 +135,55 @@ public class GridViewFragment extends Fragment
         activity.showDetailViewForMovie(mAdapter.getItem(position));
     }
 
+    private void invalidateAndReloadDataSet() {
+        mAdapter.clear();
+        mAdapter.notifyDataSetChanged();
+        mEndlessScrollListener.invalidate();
+        mShouldReloadData = true;
+    }
+
+    private void registerBroadcastReceiverForInternetConnectivity() {
+        mInternetConnectivityStateListener = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(LOG_TAG, "Connectivity state changed!");
+                if (null != intent.getExtras()) {
+                    ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                    NetworkInfo ni = cm.getActiveNetworkInfo();
+                    if (null != ni) {
+                        Log.d(LOG_TAG, "We have an active network...");
+                        if (ni.isConnected()) {
+                            Log.d(LOG_TAG, "And the active network is connected.");
+                            if (mShouldReloadDataWhenConnectivityIsPresent) {
+                                Log.d(LOG_TAG, "We are going to reload data because the mShouldReloadDataWhenConnectivityIsPresent flag is set.");
+                                invalidateAndReloadDataSet();
+                                loadMoviesAtPage(1);
+                                mShouldReloadDataWhenConnectivityIsPresent = false;
+                            }
+                        }
+
+                        else {
+                            Log.d(LOG_TAG, "But the active network is not connected.");
+                        }
+                    }
+
+                    else {
+                        Log.d(LOG_TAG, "We have no connected networks.");
+                    }
+                }
+            }
+        };
+
+        getActivity().registerReceiver(mInternetConnectivityStateListener,
+                new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+    }
+
+    private void unregisterBroadcastReceiverForInternetConnectivity() {
+        getActivity().unregisterReceiver(mInternetConnectivityStateListener);
+    }
+
     private Boolean loadMoviesAtPage(int page) {
+        Log.d(LOG_TAG, "Load movies at page " + page);
         // get the saved sort order
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String preferredSortOrder = prefs.getString(getString(R.string.pref_sort_order_key),
@@ -132,8 +198,11 @@ public class GridViewFragment extends Fragment
                     // Only show error view if there is no items in the grid view.
                     if (mAdapter.getCount() == 0) {
                         mErrorView.setVisibility(View.VISIBLE);
+                        mShouldReloadDataWhenConnectivityIsPresent = true;
                         return;
                     }
+
+                    mEndlessScrollListener.setLoading(false);
                 }
 
                 mErrorView.setVisibility(View.GONE);

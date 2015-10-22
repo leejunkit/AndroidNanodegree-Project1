@@ -32,6 +32,14 @@ public abstract class EndlessScrollListener implements AbsListView.OnScrollListe
         this.currentPage = startPage;
     }
 
+    public boolean isLoading() {
+        return loading;
+    }
+
+    public void setLoading(boolean loading) {
+        this.loading = loading;
+    }
+
     public void invalidate() {
         currentPage = 0;
         previousTotalItemCount = 0;

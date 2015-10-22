@@ -5,6 +5,6 @@
     <string name="title_activity_movie_detail">Movie Detail</string>
     <string name="null_release_date_label">(no release date found)</string>
     <string name="null_synopsis_label">(no synopsis found)</string>
-    <string name="rating_out_of_label"> out of 10</string>
+    <string name="rating_out_of_label">\u0020out of 10</string>
     <string name="error_http_label">An error occurred.\nYour Internet connection may also be down.</string>
 </resources>
