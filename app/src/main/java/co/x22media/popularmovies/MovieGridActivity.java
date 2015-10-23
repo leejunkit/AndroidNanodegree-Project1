@@ -10,15 +10,25 @@ import co.x22media.popularmovies.fragments.GridViewFragment;
 import co.x22media.popularmovies.models.Movie;
 
 public class MovieGridActivity extends ActionBarActivity {
-    private final String LOG_TAG = GridViewFragment.class.getSimpleName();
+    private final String LOG_TAG = MovieGridActivity.class.getSimpleName();
+    private GridViewFragment mGridViewFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_grid);
         if (savedInstanceState == null) {
+            mGridViewFragment = new GridViewFragment();
+        }
+
+        else {
+            mGridViewFragment = (GridViewFragment) getSupportFragmentManager().
+                    getFragment(savedInstanceState, "mGridViewFragment");
+        }
+
+        if (!mGridViewFragment.isAdded()) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new GridViewFragment())
+                    .add(R.id.container, mGridViewFragment)
                     .commit();
         }
     }
@@ -28,6 +38,12 @@ public class MovieGridActivity extends ActionBarActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_movie_grid, menu);
         return true;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        getSupportFragmentManager().putFragment(outState, "mGridViewFragment", mGridViewFragment);
+        super.onSaveInstanceState(outState);
     }
 
     @Override

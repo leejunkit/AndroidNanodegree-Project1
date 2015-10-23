@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -34,6 +35,7 @@ public class GridViewFragment extends Fragment
         implements AdapterView.OnItemClickListener {
 
     private final String LOG_TAG = GridViewFragment.class.getSimpleName();
+
     private TextView mErrorView;
     private GridView mGridView;
     private MovieGridAdapter mAdapter;
@@ -48,12 +50,14 @@ public class GridViewFragment extends Fragment
     // change event handler, it screws up the scroll
     // position of the GridView.
     private Boolean mShouldReloadData = false;
-
     private Boolean mShouldReloadDataWhenConnectivityIsPresent = false;
 
     public GridViewFragment() {
     }
 
+    /*
+        Fragment Lifecycle
+     */
     @Override
     public void onDestroy(){
         super.onDestroy();
@@ -105,8 +109,22 @@ public class GridViewFragment extends Fragment
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
 
         // set the adapter
-        mAdapter = new MovieGridAdapter(getActivity(), new ArrayList<Movie>());
+        if (null != savedInstanceState) {
+            ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("movies");
+            mAdapter = new MovieGridAdapter(getActivity(), movies);
+        }
+
+        else {
+            mAdapter = new MovieGridAdapter(getActivity(), new ArrayList<Movie>());
+        }
+
         mGridView.setAdapter(mAdapter);
+
+        // if we are restoring from a saved instance state,
+        // set the position of the GridView
+        if (null != savedInstanceState) {
+            mGridView.smoothScrollToPosition(savedInstanceState.getInt("gridViewPosition"));
+        }
 
         // set the endless scroll listener
         mEndlessScrollListener = new EndlessScrollListener() {
@@ -121,11 +139,17 @@ public class GridViewFragment extends Fragment
         // set the onItemClick event
         mGridView.setOnItemClickListener(this);
 
-        // load the first page
-        loadMoviesAtPage(1);
+        // load the first page (only if we are not restoring from a saved instance state)
+        if (null == savedInstanceState) {
+            loadMoviesAtPage(1);
+        }
 
         return rootView;
     }
+
+    /*
+        Event handlers
+     */
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -223,5 +247,33 @@ public class GridViewFragment extends Fragment
         }).execute();
 
         return true;
+    }
+
+    /*
+        Fragment state management
+     */
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        // iterate through the adapter and pull out the list of Movie objects
+        int length = mAdapter.getCount();
+        ArrayList<Movie> movies = new ArrayList<Movie>();
+        for (int i = 0; i < length; i++) {
+            movies.add(mAdapter.getItem(i));
+        }
+
+        // get the current position of the grid view
+        int gridViewPosition = mGridView.getFirstVisiblePosition();
+
+        // save them in the bundle
+        outState.putParcelableArrayList("movies", movies);
+        outState.putInt("gridViewPosition", gridViewPosition);
+
+        super.onSaveInstanceState(outState);
     }
 }
