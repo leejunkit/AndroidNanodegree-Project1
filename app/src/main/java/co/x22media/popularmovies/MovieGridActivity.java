@@ -2,14 +2,14 @@ package co.x22media.popularmovies;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import co.x22media.popularmovies.fragments.GridViewFragment;
 import co.x22media.popularmovies.models.Movie;
 
-public class MovieGridActivity extends ActionBarActivity {
+public class MovieGridActivity extends AppCompatActivity {
     private final String LOG_TAG = MovieGridActivity.class.getSimpleName();
     private GridViewFragment mGridViewFragment;
 

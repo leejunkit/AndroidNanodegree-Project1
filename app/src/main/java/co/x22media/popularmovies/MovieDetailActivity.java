@@ -1,7 +1,7 @@
 package co.x22media.popularmovies;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -9,7 +9,7 @@ import co.x22media.popularmovies.fragments.MovieDetailFragment;
 import co.x22media.popularmovies.models.Movie;
 
 
-public class MovieDetailActivity extends ActionBarActivity {
+public class MovieDetailActivity extends AppCompatActivity {
     private final String LOG_TAG = MovieDetailActivity.class.getSimpleName();
 
     @Override
