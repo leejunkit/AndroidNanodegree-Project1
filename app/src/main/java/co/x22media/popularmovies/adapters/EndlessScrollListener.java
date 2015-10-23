@@ -1,5 +1,6 @@
 package co.x22media.popularmovies.adapters;
 
+import android.os.Bundle;
 import android.widget.AbsListView;
 
 /**
@@ -30,6 +31,25 @@ public abstract class EndlessScrollListener implements AbsListView.OnScrollListe
         this.visibleThreshold = visibleThreshold;
         this.startingPageIndex = startPage;
         this.currentPage = startPage;
+    }
+
+    public EndlessScrollListener(Bundle b) {
+        this.visibleThreshold = b.getInt("visibleThreshold");
+        this.currentPage = b.getInt("currentPage");
+        this.previousTotalItemCount = b.getInt("previousTotalItemCount");
+        this.loading = b.getBoolean("loading");
+        this.startingPageIndex = b.getInt("startingPageIndex");
+    }
+
+    public Bundle getBundleRepresentation() {
+        Bundle b = new Bundle();
+        b.putInt("visibleThreshold", visibleThreshold);
+        b.putInt("currentPage", currentPage);
+        b.putInt("previousTotalItemCount", previousTotalItemCount);
+        b.putBoolean("loading", loading);
+        b.putInt("startingPageIndex", startingPageIndex);
+
+        return b;
     }
 
     public boolean isLoading() {

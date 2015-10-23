@@ -127,12 +127,24 @@ public class GridViewFragment extends Fragment
         }
 
         // set the endless scroll listener
-        mEndlessScrollListener = new EndlessScrollListener() {
-            @Override
-            public boolean onLoadMore(int page, int totalItemsCount) {
-                return loadMoviesAtPage(page);
-            }
-        };
+        if (null != savedInstanceState) {
+            mEndlessScrollListener = new EndlessScrollListener(savedInstanceState.getBundle("endlessScrollBundle")) {
+                @Override
+                public boolean onLoadMore(int page, int totalItemsCount) {
+                    return loadMoviesAtPage(page);
+                }
+            };
+        }
+
+        else {
+            mEndlessScrollListener = new EndlessScrollListener() {
+                @Override
+                public boolean onLoadMore(int page, int totalItemsCount) {
+                    return loadMoviesAtPage(page);
+                }
+            };
+        }
+
 
         mGridView.setOnScrollListener(mEndlessScrollListener);
 
@@ -270,9 +282,13 @@ public class GridViewFragment extends Fragment
         // get the current position of the grid view
         int gridViewPosition = mGridView.getFirstVisiblePosition();
 
+        // get the endless scroll listener's state
+        Bundle endlessScrollBundle = mEndlessScrollListener.getBundleRepresentation();
+
         // save them in the bundle
         outState.putParcelableArrayList("movies", movies);
         outState.putInt("gridViewPosition", gridViewPosition);
+        outState.putBundle("endlessScrollBundle", endlessScrollBundle);
 
         super.onSaveInstanceState(outState);
     }
