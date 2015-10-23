@@ -33,16 +33,22 @@ public class MovieGridAdapter extends ArrayAdapter<Movie> {
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+
         // get the associated Movie object
         Movie m = getItem(position);
 
         if (null == convertView) {
             // get the LayoutInflater
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.grid_item_movie, parent, false);
+
+            ViewHolder holder = new ViewHolder();
+            holder.iv = (ImageView) convertView.findViewById(R.id.imageView);
+            convertView.setTag(holder);
         }
 
         // find the ImageView
-        ImageView iv = (ImageView) convertView.findViewById(R.id.imageView);
+        ViewHolder holder = (ViewHolder)convertView.getTag();
+        ImageView iv = holder.iv;
         Picasso.with(getContext())
                 .load(m.getPosterURL())
                 .placeholder(R.drawable.poster_placeholder)
@@ -50,4 +56,9 @@ public class MovieGridAdapter extends ArrayAdapter<Movie> {
 
         return convertView;
     }
+
+    static class ViewHolder {
+        ImageView iv;
+    }
 }
+
