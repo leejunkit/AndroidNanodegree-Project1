@@ -13,16 +13,13 @@ Replace the string resource in `app/src/main/res/values/api_keys.xml` with your 
 
 ## Questions for Reviewer (1st submission)
 1. Instead of global variables, I made it such that my `AsyncTask` accepts a callback in the constructor. Is that ok? Is the way I'm doing it acceptable?
-
-> There is nothing wrong in the way you've done things.
+ > There is nothing wrong in the way you've done things.
 
 2. My `GridViewFragment` class is somewhat messy as I attempt to coordinate between the `EndlessScrollListener` class with preference changes and connectivity changes. I introduced some state into the fragment as well, in the form of `Boolean` instance variables. Is there a better way to go about doing it?
-
-> Although the code might look a bit messy, the idea is not entirely wrong. One other work around would be to have a new and old preference value, and see if they match in `onResume` and proceed accordingly.
+ > Although the code might look a bit messy, the idea is not entirely wrong. One other work around would be to have a new and old preference value, and see if they match in `onResume` and proceed accordingly.
 
 3. I refactored the actual HTTP request/response code into `JSONHTTPHelper`. It's strange that on Android we have to manually deal with streams and buffers to read the HTTP response, whereas on other platforms HTTP code operates on a higher level of abstraction. Is this usual practice for Android development, or do most developers use a 3rd party HTTP library _(okHttp)_ or wrapper?
-
-> Yes, this is how it is in Android. You could use `OkHttp` or even `Retrofit`. Or anything else you find online.
+ > Yes, this is how it is in Android. You could use `OkHttp` or even `Retrofit`. Or anything else you find online.
 
 ## Citations
 #### Movie Poster Placeholder image
