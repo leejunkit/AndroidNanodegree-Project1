@@ -1,13 +1,7 @@
 package co.x22media.popularmovies.fragments;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -39,19 +33,11 @@ public class GridViewFragment extends Fragment
     private final String LOG_TAG = GridViewFragment.class.getSimpleName();
 
     private TextView mErrorView;
-    private GridView mGridView;
     private MovieGridAdapter mAdapter;
 
     private SharedPreferences mPrefs;
+    private String mCurrentSortSetting;
     private SharedPreferences.OnSharedPreferenceChangeListener mListener;
-    //private EndlessScrollListener mEndlessScrollListener;
-    private BroadcastReceiver mInternetConnectivityStateListener;
-
-    // Ugly stateful flag to indicate if we should reload data when Sort changes.
-    // For some reason, if we initiate the reload in the preference
-    // change event handler, it screws up the scroll
-    // position of the GridView.
-
 
     public GridViewFragment() {
     }
@@ -70,25 +56,28 @@ public class GridViewFragment extends Fragment
     public void onResume() {
         super.onResume();
 
-        // register a broadcast receiver to check Internet connectivity
-        registerBroadcastReceiverForInternetConnectivity();
-
         // register a listener for shared preference changes
         mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                Log.d(LOG_TAG, "Preferences changed! Should reload data set.");
-            }
-        };
+        mCurrentSortSetting = mPrefs.getString(getString(R.string.pref_sort_order_key),
+                getString(R.string.pref_sort_order_values_default));
 
-        mPrefs.registerOnSharedPreferenceChangeListener(mListener);
-    }
+        // don't register the listener if it is already registered!
+        if (null == mListener) {
+            mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                    String newSortSetting = sharedPreferences.getString(getString(R.string.pref_sort_order_key),
+                            getString(R.string.pref_sort_order_values_default));
+                    if (!newSortSetting.equals(mCurrentSortSetting)) {
+                        Log.d(LOG_TAG, "Preferences changed! Should reload data set.");
+                        refreshMoviesFromServer();
+                    }
+                }
+            };
 
-    @Override
-    public void onPause() {
-        unregisterBroadcastReceiverForInternetConnectivity();
-        super.onPause();
+            mPrefs.registerOnSharedPreferenceChangeListener(mListener);
+        }
+
     }
 
     @Override
@@ -101,14 +90,14 @@ public class GridViewFragment extends Fragment
         mErrorView = (TextView) rootView.findViewById(R.id.error_textview);
 
         // pull out the GridView
-        mGridView = (GridView) rootView.findViewById(R.id.gridView);
+        GridView gridView = (GridView) rootView.findViewById(R.id.gridView);
 
         // set the adapter
         mAdapter = new MovieGridAdapter(getActivity(), null, 0);
-        mGridView.setAdapter(mAdapter);
+        gridView.setAdapter(mAdapter);
 
         // set the onItemClick event
-        mGridView.setOnItemClickListener(this);
+        gridView.setOnItemClickListener(this);
 
         return rootView;
     }
@@ -125,48 +114,19 @@ public class GridViewFragment extends Fragment
         //activity.showDetailViewForMovie(mAdapter.getItem(position));
     }
 
-    private void registerBroadcastReceiverForInternetConnectivity() {
-        mInternetConnectivityStateListener = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d(LOG_TAG, "Connectivity state changed!");
-                if (null != intent.getExtras()) {
-                    ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-                    NetworkInfo ni = cm.getActiveNetworkInfo();
-                    if (null != ni) {
-                        Log.d(LOG_TAG, "We have an active network...");
-                        if (ni.isConnected()) {
-                            Log.d(LOG_TAG, "And the active network is connected.");
-                        }
+    private Boolean refreshMoviesFromServer() {
 
-                        else {
-                            Log.d(LOG_TAG, "But the active network is not connected.");
-                        }
-                    }
+        // remove all movie objects in the database first
+        int rowsDeleted = getContext().getContentResolver()
+                .delete(MovieProvider.getMovieDirUri(), null, null);
+        Log.d(LOG_TAG, "Delete all movies: " + String.valueOf(rowsDeleted) + " rows deleted.");
 
-                    else {
-                        Log.d(LOG_TAG, "We have no connected networks.");
-                    }
-                }
-            }
-        };
-
-        getActivity().registerReceiver(mInternetConnectivityStateListener,
-                new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-    }
-
-    private void unregisterBroadcastReceiverForInternetConnectivity() {
-        getActivity().unregisterReceiver(mInternetConnectivityStateListener);
-    }
-
-    private Boolean loadMoviesAtPage(int page) {
-        Log.d(LOG_TAG, "Load movies at page " + page);
-
-        new GetMoviesAsyncTask(getActivity(), page, new GetMoviesAsyncTask.GetMoviesTaskCallback() {
+        new GetMoviesAsyncTask(getActivity(), new GetMoviesAsyncTask.GetMoviesTaskCallback() {
             @Override
             public void onTaskDone(Exception e, Movie[] movies) {
                 if (null != e) {
                     Log.w(LOG_TAG, "Exception occurred attempting to communicate with API.", e);
+                    mErrorView.setVisibility(View.VISIBLE);
                 }
             }
         }).execute();
@@ -194,8 +154,7 @@ public class GridViewFragment extends Fragment
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         if (!data.moveToFirst()) {
             // we have no data
-            Log.d(LOG_TAG, "Cursor returned no data!");
-            loadMoviesAtPage(1);
+            Log.d(LOG_TAG, "Cursor returned no data.");
         }
 
         mAdapter.swapCursor(data);

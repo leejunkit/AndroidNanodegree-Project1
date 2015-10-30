@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.SparseIntArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,7 +38,7 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
     private Exception mHttpException;
     private GetMoviesTaskCallback mCallback;
 
-    public GetMoviesAsyncTask(Context context, int page, GetMoviesTaskCallback callback) {
+    public GetMoviesAsyncTask(Context context, GetMoviesTaskCallback callback) {
 
         mContext = context;
 
@@ -49,25 +50,36 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
         mSortOrder = prefs.getString(context.getString(R.string.pref_sort_order_key),
                 context.getString(R.string.pref_sort_order_values_default));
 
-        mRequestedPage = page;
         mCallback = callback;
     }
 
     @Override
     protected Movie[] doInBackground(Void... params) {
+        ArrayList<Movie> movies = new ArrayList<>();
+        for (int i = 1; i < 4; i++) {
+            ArrayList<Movie> moviePage = executeHTTPRequestForMoviesAtPage(i);
+            movies.addAll(moviePage);
+        }
+
+        Movie[] m = new Movie[movies.size()];
+        saveMoviesToDatabase(movies.toArray(m));
+        return m;
+    }
+
+    private ArrayList<Movie> executeHTTPRequestForMoviesAtPage(int page) {
         Uri.Builder builder = Uri.parse(BASE_URL_STRING).buildUpon();
 
         builder.appendQueryParameter("sort_by", mSortOrder)
-                .appendQueryParameter("page", String.valueOf(mRequestedPage))
+                .appendQueryParameter("page", String.valueOf(page))
                 .appendQueryParameter("api_key", mApiKey);
 
         try {
-            JSONHTTPHelper jsonHttpHelper = new JSONHTTPHelper("GET", builder.build().toString());
+            String urlString = builder.build().toString();
+            Log.d(LOG_TAG, "URL to query is " + urlString);
+            JSONHTTPHelper jsonHttpHelper = new JSONHTTPHelper("GET", urlString);
             JSONObject obj = jsonHttpHelper.executeForJSONResponse();
 
-            Movie[] movies = parseJsonObjectToMovies(obj);
-            saveMoviesToDatabase(movies);
-            return movies;
+            return parseJsonObjectToMovies(obj);
         }
 
         catch (MalformedURLException e) {
@@ -87,7 +99,7 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
         return null;
     }
 
-    private Movie[] parseJsonObjectToMovies(JSONObject obj) throws JSONException {
+    private ArrayList<Movie> parseJsonObjectToMovies(JSONObject obj) throws JSONException {
         JSONArray resultsArray = obj.getJSONArray("results");
         ArrayList<Movie> movies = new ArrayList<>();
 
@@ -98,20 +110,31 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
             String posterPath = result.getString("poster_path");
             String title = result.getString("title");
             String synopsis = result.getString("overview");
+            double popularity = result.getDouble("popularity");
             double userRating = result.getDouble("vote_average");
             String releaseDate = result.getString("release_date");
 
-            Movie m = new Movie(result.getInt("id"), title, posterPath, synopsis, userRating, releaseDate);
+            Movie m = new Movie(result.getInt("id"), title, posterPath, synopsis, popularity, userRating, releaseDate);
             movies.add(m);
         }
 
-        return movies.toArray(new Movie[0]);
+        return movies;
     }
 
     private int saveMoviesToDatabase(Movie[] movies) {
+        // For some strange reason the API returns duplicate objects,
+        // we implement a check to ensure that we do
+        // not insert them more than once.
+
+        SparseIntArray arr = new SparseIntArray();
         ArrayList<ContentValues> moviesToSave = new ArrayList<>();
+
         for (Movie m : movies) {
-            moviesToSave.add(m.toContentValues());
+            int movieID = m.getMovieID();
+            if (0 == arr.get(movieID)) {
+                moviesToSave.add(m.toContentValues());
+                arr.put(movieID, 1);
+            }
         }
 
         ContentValues[] cv = new ContentValues[moviesToSave.size()];

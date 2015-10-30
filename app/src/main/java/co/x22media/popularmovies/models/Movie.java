@@ -16,6 +16,7 @@ public class Movie implements Parcelable {
     private String title;
     private String posterPath;
     private String synopsis;
+    private double popularity;
     private double userRating;
     private String releaseDate;
 
@@ -26,6 +27,7 @@ public class Movie implements Parcelable {
         int idxTitle = c.getColumnIndex(MovieProvider.Movie.KEY_TITLE);
         int idxPosterPath = c.getColumnIndex(MovieProvider.Movie.KEY_POSTER_PATH);
         int idxSynopsis = c.getColumnIndex(MovieProvider.Movie.KEY_OVERVIEW);
+        int idxPopularity = c.getColumnIndex(MovieProvider.Movie.KEY_POPULARITY);
         int idxUserRating = c.getColumnIndex(MovieProvider.Movie.KEY_USER_RATING);
         int idxReleaseDate = c.getColumnIndex(MovieProvider.Movie.KEY_RELEASE_DATE);
 
@@ -34,6 +36,7 @@ public class Movie implements Parcelable {
                 c.getString(idxTitle),
                 c.getString(idxPosterPath),
                 c.getString(idxSynopsis),
+                c.getDouble(idxPopularity),
                 c.getDouble(idxUserRating),
                 c.getString(idxReleaseDate));
     }
@@ -42,13 +45,16 @@ public class Movie implements Parcelable {
                  String title,
                  String posterPath,
                  String synopsis,
+                 double popularity,
                  double userRating,
                  String releaseDate) {
 
         this.movieID = movieID;
         this.title = title;
         this.posterPath = posterPath;
+
         this.synopsis = synopsis;
+        this.popularity = popularity;
         this.userRating = userRating;
         this.releaseDate = releaseDate;
     }
@@ -59,6 +65,7 @@ public class Movie implements Parcelable {
         c.put(MovieProvider.Movie.KEY_TITLE, this.getTitle());
         c.put(MovieProvider.Movie.KEY_POSTER_PATH, this.getPosterPath());
         c.put(MovieProvider.Movie.KEY_OVERVIEW, this.getSynopsis());
+        c.put(MovieProvider.Movie.KEY_POPULARITY, this.getPopularity());
         c.put(MovieProvider.Movie.KEY_USER_RATING, this.getUserRating());
         c.put(MovieProvider.Movie.KEY_RELEASE_DATE, this.getReleaseDate());
         return c;
@@ -74,6 +81,10 @@ public class Movie implements Parcelable {
 
     public String getSynopsis() {
         return synopsis;
+    }
+
+    public double getPopularity() {
+        return popularity;
     }
 
     public double getUserRating() {
