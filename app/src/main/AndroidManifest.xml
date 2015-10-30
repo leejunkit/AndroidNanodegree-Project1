@@ -33,6 +33,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MovieGridActivity" />
         </activity>
+
+        <provider
+            android:authorities="co.x22media.popularmovies"
+            android:name=".provider.MovieProvider" />
     </application>
 
 </manifest>

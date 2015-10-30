@@ -1,28 +1,67 @@
 package co.x22media.popularmovies.models;
 
+import android.content.ContentValues;
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.Date;
+import co.x22media.popularmovies.provider.MovieProvider;
 
 /**
  * Created by kit on 20/10/15.
  */
 public class Movie implements Parcelable {
+
     private int movieID;
     private String title;
-    private String posterURL;
+    private String posterPath;
     private String synopsis;
     private double userRating;
-    private Date releaseDate;
+    private String releaseDate;
 
-    public Movie(int movieID, String title, String posterURLString, String synopsis, double userRating, Date releaseDate) {
+    public static Movie fromCursor(Cursor c) {
+        final String LOG_TAG = Movie.class.getSimpleName();
+
+        int idxMovieID = c.getColumnIndex(MovieProvider.Movie.KEY_ID);
+        int idxTitle = c.getColumnIndex(MovieProvider.Movie.KEY_TITLE);
+        int idxPosterPath = c.getColumnIndex(MovieProvider.Movie.KEY_POSTER_PATH);
+        int idxSynopsis = c.getColumnIndex(MovieProvider.Movie.KEY_OVERVIEW);
+        int idxUserRating = c.getColumnIndex(MovieProvider.Movie.KEY_USER_RATING);
+        int idxReleaseDate = c.getColumnIndex(MovieProvider.Movie.KEY_RELEASE_DATE);
+
+        return new Movie(
+                c.getInt(idxMovieID),
+                c.getString(idxTitle),
+                c.getString(idxPosterPath),
+                c.getString(idxSynopsis),
+                c.getDouble(idxUserRating),
+                c.getString(idxReleaseDate));
+    }
+
+    public Movie(int movieID,
+                 String title,
+                 String posterPath,
+                 String synopsis,
+                 double userRating,
+                 String releaseDate) {
+
         this.movieID = movieID;
         this.title = title;
-        this.posterURL = posterURLString;
+        this.posterPath = posterPath;
         this.synopsis = synopsis;
         this.userRating = userRating;
         this.releaseDate = releaseDate;
+    }
+
+    public ContentValues toContentValues() {
+        ContentValues c = new ContentValues();
+        c.put(MovieProvider.Movie.KEY_ID, this.getMovieID());
+        c.put(MovieProvider.Movie.KEY_TITLE, this.getTitle());
+        c.put(MovieProvider.Movie.KEY_POSTER_PATH, this.getPosterPath());
+        c.put(MovieProvider.Movie.KEY_OVERVIEW, this.getSynopsis());
+        c.put(MovieProvider.Movie.KEY_USER_RATING, this.getUserRating());
+        c.put(MovieProvider.Movie.KEY_RELEASE_DATE, this.getReleaseDate());
+        return c;
     }
 
     public int getMovieID() {
@@ -41,12 +80,12 @@ public class Movie implements Parcelable {
         return userRating;
     }
 
-    public Date getReleaseDate() {
+    public String getReleaseDate() {
         return releaseDate;
     }
 
-    public String getPosterURL() {
-        return posterURL;
+    public String getPosterPath() {
+        return posterPath;
     }
 
     @Override
@@ -57,7 +96,7 @@ public class Movie implements Parcelable {
         builder.append("\n");
         builder.append("title=" + this.title);
         builder.append("\n");
-        builder.append("posterURL=" + this.posterURL);
+        builder.append("posterPath=" + this.posterPath);
         builder.append("\n");
         builder.append("synopsis=" + this.synopsis);
         builder.append("\n");
@@ -77,20 +116,19 @@ public class Movie implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(this.movieID);
         dest.writeString(this.title);
-        dest.writeString(this.posterURL);
+        dest.writeString(this.posterPath);
         dest.writeString(this.synopsis);
         dest.writeDouble(this.userRating);
-        dest.writeLong(releaseDate != null ? releaseDate.getTime() : -1);
+        dest.writeString(this.releaseDate);
     }
 
     protected Movie(Parcel in) {
         this.movieID = in.readInt();
         this.title = in.readString();
-        this.posterURL = in.readString();
+        this.posterPath = in.readString();
         this.synopsis = in.readString();
         this.userRating = in.readDouble();
-        long tmpReleaseDate = in.readLong();
-        this.releaseDate = tmpReleaseDate == -1 ? null : new Date(tmpReleaseDate);
+        this.releaseDate = in.readString();
     }
 
     public static final Parcelable.Creator<Movie> CREATOR = new Parcelable.Creator<Movie>() {

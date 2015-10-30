@@ -5,12 +5,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,20 +24,17 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-
-import co.x22media.popularmovies.MovieGridActivity;
 import co.x22media.popularmovies.R;
-import co.x22media.popularmovies.adapters.EndlessScrollListener;
 import co.x22media.popularmovies.adapters.MovieGridAdapter;
 import co.x22media.popularmovies.models.Movie;
+import co.x22media.popularmovies.provider.MovieProvider;
 import co.x22media.popularmovies.tasks.GetMoviesAsyncTask;
 
 /**
  * Created by kit on 21/10/15.
  */
 public class GridViewFragment extends Fragment
-        implements AdapterView.OnItemClickListener {
+        implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     private final String LOG_TAG = GridViewFragment.class.getSimpleName();
 
@@ -42,15 +44,14 @@ public class GridViewFragment extends Fragment
 
     private SharedPreferences mPrefs;
     private SharedPreferences.OnSharedPreferenceChangeListener mListener;
-    private EndlessScrollListener mEndlessScrollListener;
+    //private EndlessScrollListener mEndlessScrollListener;
     private BroadcastReceiver mInternetConnectivityStateListener;
 
     // Ugly stateful flag to indicate if we should reload data when Sort changes.
     // For some reason, if we initiate the reload in the preference
     // change event handler, it screws up the scroll
     // position of the GridView.
-    private Boolean mShouldReloadData = false;
-    private Boolean mShouldReloadDataWhenConnectivityIsPresent = false;
+
 
     public GridViewFragment() {
     }
@@ -58,6 +59,7 @@ public class GridViewFragment extends Fragment
     /*
         Fragment Lifecycle
      */
+
     @Override
     public void onDestroy(){
         super.onDestroy();
@@ -76,18 +78,11 @@ public class GridViewFragment extends Fragment
         mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                Log.d(LOG_TAG, "Preferences changed! Will reload data set.");
-                invalidateAndReloadDataSet();
+                Log.d(LOG_TAG, "Preferences changed! Should reload data set.");
             }
         };
 
         mPrefs.registerOnSharedPreferenceChangeListener(mListener);
-
-        // reload data set if necessary
-        if (mShouldReloadData) {
-            loadMoviesAtPage(1);
-            mShouldReloadData = false;
-        }
     }
 
     @Override
@@ -109,52 +104,11 @@ public class GridViewFragment extends Fragment
         mGridView = (GridView) rootView.findViewById(R.id.gridView);
 
         // set the adapter
-        if (null != savedInstanceState) {
-            ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList("movies");
-            mAdapter = new MovieGridAdapter(getActivity(), movies);
-        }
-
-        else {
-            mAdapter = new MovieGridAdapter(getActivity(), new ArrayList<Movie>());
-        }
-
+        mAdapter = new MovieGridAdapter(getActivity(), null, 0);
         mGridView.setAdapter(mAdapter);
-
-        // if we are restoring from a saved instance state,
-        // set the position of the GridView
-        if (null != savedInstanceState) {
-            mGridView.smoothScrollToPosition(savedInstanceState.getInt("gridViewPosition"));
-        }
-
-        // set the endless scroll listener
-        if (null != savedInstanceState) {
-            mEndlessScrollListener = new EndlessScrollListener(savedInstanceState.getBundle("endlessScrollBundle")) {
-                @Override
-                public boolean onLoadMore(int page, int totalItemsCount) {
-                    return loadMoviesAtPage(page);
-                }
-            };
-        }
-
-        else {
-            mEndlessScrollListener = new EndlessScrollListener() {
-                @Override
-                public boolean onLoadMore(int page, int totalItemsCount) {
-                    return loadMoviesAtPage(page);
-                }
-            };
-        }
-
-
-        mGridView.setOnScrollListener(mEndlessScrollListener);
 
         // set the onItemClick event
         mGridView.setOnItemClickListener(this);
-
-        // load the first page (only if we are not restoring from a saved instance state)
-        if (null == savedInstanceState) {
-            loadMoviesAtPage(1);
-        }
 
         return rootView;
     }
@@ -167,15 +121,8 @@ public class GridViewFragment extends Fragment
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // fragments are supposed to be reusable views, so we put the
         // showMovieDetail method in the Activity instead
-        MovieGridActivity activity = (MovieGridActivity) getActivity();
-        activity.showDetailViewForMovie(mAdapter.getItem(position));
-    }
-
-    private void invalidateAndReloadDataSet() {
-        mAdapter.clear();
-        mAdapter.notifyDataSetChanged();
-        mEndlessScrollListener.invalidate();
-        mShouldReloadData = true;
+       // MovieGridActivity activity = (MovieGridActivity) getActivity();
+        //activity.showDetailViewForMovie(mAdapter.getItem(position));
     }
 
     private void registerBroadcastReceiverForInternetConnectivity() {
@@ -190,12 +137,6 @@ public class GridViewFragment extends Fragment
                         Log.d(LOG_TAG, "We have an active network...");
                         if (ni.isConnected()) {
                             Log.d(LOG_TAG, "And the active network is connected.");
-                            if (mShouldReloadDataWhenConnectivityIsPresent) {
-                                Log.d(LOG_TAG, "We are going to reload data because the mShouldReloadDataWhenConnectivityIsPresent flag is set.");
-                                invalidateAndReloadDataSet();
-                                loadMoviesAtPage(1);
-                                mShouldReloadDataWhenConnectivityIsPresent = false;
-                            }
                         }
 
                         else {
@@ -221,75 +162,55 @@ public class GridViewFragment extends Fragment
     private Boolean loadMoviesAtPage(int page) {
         Log.d(LOG_TAG, "Load movies at page " + page);
 
-        // get the API key
-        String apiKey = getString(R.string.themoviedb_api_key);
-
-        // get the saved sort order
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String preferredSortOrder = prefs.getString(getString(R.string.pref_sort_order_key),
-                getString(R.string.pref_sort_order_values_default));
-
-        new GetMoviesAsyncTask(apiKey, page, preferredSortOrder, new GetMoviesAsyncTask.GetMoviesTaskCallback() {
+        new GetMoviesAsyncTask(getActivity(), page, new GetMoviesAsyncTask.GetMoviesTaskCallback() {
             @Override
             public void onTaskDone(Exception e, Movie[] movies) {
                 if (null != e) {
                     Log.w(LOG_TAG, "Exception occurred attempting to communicate with API.", e);
-
-                    // Only show error view if there is no items in the grid view.
-                    if (mAdapter.getCount() == 0) {
-                        mErrorView.setVisibility(View.VISIBLE);
-                        mShouldReloadDataWhenConnectivityIsPresent = true;
-                        return;
-                    }
-
-                    mEndlessScrollListener.setLoading(false);
                 }
-
-                mErrorView.setVisibility(View.GONE);
-
-                // If there is an error, movies will be null.
-                // We'll need to handle that.
-                if (null != movies) {
-                    for (Movie m : movies) {
-                        mAdapter.add(m);
-                    }
-                }
-
             }
         }).execute();
 
         return true;
     }
 
-    /*
-        Fragment state management
-     */
-
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        // instantiate the loader
+        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
-        // iterate through the adapter and pull out the list of Movie objects
-        int length = mAdapter.getCount();
-        ArrayList<Movie> movies = new ArrayList<Movie>();
-        for (int i = 0; i < length; i++) {
-            movies.add(mAdapter.getItem(i));
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String sortOrder = MovieProvider.Movie.KEY_POPULARITY + " DESC";
+        Uri moviesUri = MovieProvider.getMovieDirUri();
+
+        return new CursorLoader(getActivity(), moviesUri, null, null, null, sortOrder);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (!data.moveToFirst()) {
+            // we have no data
+            Log.d(LOG_TAG, "Cursor returned no data!");
+            loadMoviesAtPage(1);
         }
 
-        // get the current position of the grid view
-        int gridViewPosition = mGridView.getFirstVisiblePosition();
+        mAdapter.swapCursor(data);
+    }
 
-        // get the endless scroll listener's state
-        Bundle endlessScrollBundle = mEndlessScrollListener.getBundleRepresentation();
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mAdapter.swapCursor(null);
+    }
 
-        // save them in the bundle
-        outState.putParcelableArrayList("movies", movies);
-        outState.putInt("gridViewPosition", gridViewPosition);
-        outState.putBundle("endlessScrollBundle", endlessScrollBundle);
-
+     /*
+        Fragment state management
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
 }

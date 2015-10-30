@@ -1,7 +1,11 @@
 package co.x22media.popularmovies.tasks;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -10,13 +14,12 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+import co.x22media.popularmovies.R;
 import co.x22media.popularmovies.helpers.JSONHTTPHelper;
 import co.x22media.popularmovies.models.Movie;
+import co.x22media.popularmovies.provider.MovieProvider;
 
 /**
  * Created by kit on 20/10/15.
@@ -25,6 +28,8 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
     private final String LOG_TAG = GetMoviesAsyncTask.class.getSimpleName();
     private final String BASE_URL_STRING = "http://api.themoviedb.org/3/discover/movie";
 
+    private Context mContext;
+
     private int mRequestedPage;
     private String mSortOrder;
     private String mApiKey;
@@ -32,11 +37,19 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
     private Exception mHttpException;
     private GetMoviesTaskCallback mCallback;
 
+    public GetMoviesAsyncTask(Context context, int page, GetMoviesTaskCallback callback) {
 
-    public GetMoviesAsyncTask(String apiKey, int page, String sortOrder, GetMoviesTaskCallback callback) {
-        mApiKey = apiKey;
+        mContext = context;
+
+        // get the API key
+        mApiKey = context.getString(R.string.themoviedb_api_key);
+
+        // get the saved sort order
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        mSortOrder = prefs.getString(context.getString(R.string.pref_sort_order_key),
+                context.getString(R.string.pref_sort_order_values_default));
+
         mRequestedPage = page;
-        mSortOrder = sortOrder;
         mCallback = callback;
     }
 
@@ -51,8 +64,10 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
         try {
             JSONHTTPHelper jsonHttpHelper = new JSONHTTPHelper("GET", builder.build().toString());
             JSONObject obj = jsonHttpHelper.executeForJSONResponse();
-            return this.parseJsonObjectToMovies(obj);
 
+            Movie[] movies = parseJsonObjectToMovies(obj);
+            saveMoviesToDatabase(movies);
+            return movies;
         }
 
         catch (MalformedURLException e) {
@@ -73,39 +88,38 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
     }
 
     private Movie[] parseJsonObjectToMovies(JSONObject obj) throws JSONException {
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-
         JSONArray resultsArray = obj.getJSONArray("results");
-
-        ArrayList<Movie> movies = new ArrayList<Movie>();
+        ArrayList<Movie> movies = new ArrayList<>();
 
         for (int i = 0; i < resultsArray.length(); i++) {
             JSONObject result = resultsArray.getJSONObject(i);
 
-            // parse the poster URL
-            String basePosterURL = "http://image.tmdb.org/t/p/w185";
-            String posterURLString = basePosterURL + result.getString("poster_path");
-
-            // prepare the other variables
+            // prepare the variables
+            String posterPath = result.getString("poster_path");
             String title = result.getString("title");
             String synopsis = result.getString("overview");
             double userRating = result.getDouble("vote_average");
+            String releaseDate = result.getString("release_date");
 
-            // parse release date from String to Date
-            java.util.Date releaseDate = null;
-            try {
-               releaseDate = df.parse(result.getString("release_date"));
-            }
-
-            catch (ParseException e) {
-                Log.w(LOG_TAG, "Cannot parse release_date, skipping.", e);
-            }
-
-            Movie m = new Movie(result.getInt("id"), title, posterURLString, synopsis, userRating, releaseDate);
+            Movie m = new Movie(result.getInt("id"), title, posterPath, synopsis, userRating, releaseDate);
             movies.add(m);
         }
 
         return movies.toArray(new Movie[0]);
+    }
+
+    private int saveMoviesToDatabase(Movie[] movies) {
+        ArrayList<ContentValues> moviesToSave = new ArrayList<>();
+        for (Movie m : movies) {
+            moviesToSave.add(m.toContentValues());
+        }
+
+        ContentValues[] cv = new ContentValues[moviesToSave.size()];
+        moviesToSave.toArray(cv);
+        int rows = mContext.getContentResolver().bulkInsert(MovieProvider.getMovieDirUri(), cv);
+        Log.i(LOG_TAG, String.valueOf(rows) + " rows saved!");
+
+        return rows;
     }
 
     @Override
