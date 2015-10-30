@@ -56,12 +56,11 @@ public class GridViewFragment extends Fragment
     public void onResume() {
         super.onResume();
 
-        // register a listener for shared preference changes
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        mCurrentSortSetting = mPrefs.getString(getString(R.string.pref_sort_order_key),
-                getString(R.string.pref_sort_order_values_default));
+        // get the current sort setting...
+        mCurrentSortSetting = mPrefs.getString(getString(R.string.pref_sort_order_key), null);
 
-        // don't register the listener if it is already registered!
+        // Register a listener for shared preference changes,
+        // but don't register the listener if it is already registered!
         if (null == mListener) {
             mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
                 @Override
@@ -78,6 +77,12 @@ public class GridViewFragment extends Fragment
             mPrefs.registerOnSharedPreferenceChangeListener(mListener);
         }
 
+        // set the default setting if it is not set, triggering the refresh for a new install
+        if (null == mCurrentSortSetting) {
+            SharedPreferences.Editor e = mPrefs.edit();
+            e.putString(getString(R.string.pref_sort_order_key), getString(R.string.pref_sort_order_values_default));
+            e.commit();
+        }
     }
 
     @Override
@@ -121,6 +126,9 @@ public class GridViewFragment extends Fragment
                 .delete(MovieProvider.getMovieDirUri(), null, null);
         Log.d(LOG_TAG, "Delete all movies: " + String.valueOf(rowsDeleted) + " rows deleted.");
 
+        // ensure onCreateLoader gets called again so the loader picks up any new sort order
+        getLoaderManager().restartLoader(0, null, this);
+
         new GetMoviesAsyncTask(getActivity(), new GetMoviesAsyncTask.GetMoviesTaskCallback() {
             @Override
             public void onTaskDone(Exception e, Movie[] movies) {
@@ -139,14 +147,26 @@ public class GridViewFragment extends Fragment
         super.onActivityCreated(savedInstanceState);
 
         // instantiate the loader
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String sortOrder = MovieProvider.Movie.KEY_POPULARITY + " DESC";
-        Uri moviesUri = MovieProvider.getMovieDirUri();
+        String sortOrder;
+        String defaultSortSetting = getString(R.string.pref_sort_order_values_default);
+        String currentSortSetting = mPrefs.getString(getString(R.string.pref_sort_order_key), null);
+        if (defaultSortSetting.equals(currentSortSetting)) {
+            sortOrder = MovieProvider.Movie.KEY_POPULARITY;
+        }
 
+        else {
+            sortOrder = MovieProvider.Movie.KEY_USER_RATING;
+        }
+
+        sortOrder += " DESC";
+
+        Uri moviesUri = MovieProvider.getMovieDirUri();
         return new CursorLoader(getActivity(), moviesUri, null, null, null, sortOrder);
     }
 
