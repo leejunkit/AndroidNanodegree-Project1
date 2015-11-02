@@ -2,6 +2,6 @@
 
     <!-- These settings headers are only used on tablets. -->
 
-    <header android:fragment="co.x22media.popularmovies.SettingsActivity$GeneralPreferenceFragment"
+    <header android:fragment="co.x22media.popularmovies.fragments.SettingsFragment"
         android:title="@string/pref_header_general" />
 </preference-headers>

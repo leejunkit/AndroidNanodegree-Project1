@@ -19,6 +19,7 @@ public class Movie implements Parcelable {
     private double popularity;
     private double userRating;
     private String releaseDate;
+    private String sortSetting;
 
     public static Movie fromCursor(Cursor c) {
         final String LOG_TAG = Movie.class.getSimpleName();
@@ -30,6 +31,7 @@ public class Movie implements Parcelable {
         int idxPopularity = c.getColumnIndex(MovieProvider.Movie.KEY_POPULARITY);
         int idxUserRating = c.getColumnIndex(MovieProvider.Movie.KEY_USER_RATING);
         int idxReleaseDate = c.getColumnIndex(MovieProvider.Movie.KEY_RELEASE_DATE);
+        int idxSortSetting = c.getColumnIndex(MovieProvider.Movie.KEY_SORT_SETTING);
 
         return new Movie(
                 c.getInt(idxMovieID),
@@ -38,7 +40,8 @@ public class Movie implements Parcelable {
                 c.getString(idxSynopsis),
                 c.getDouble(idxPopularity),
                 c.getDouble(idxUserRating),
-                c.getString(idxReleaseDate));
+                c.getString(idxReleaseDate),
+                c.getString(idxSortSetting));
     }
 
     public Movie(int movieID,
@@ -47,7 +50,8 @@ public class Movie implements Parcelable {
                  String synopsis,
                  double popularity,
                  double userRating,
-                 String releaseDate) {
+                 String releaseDate,
+                 String sortSetting) {
 
         this.movieID = movieID;
         this.title = title;
@@ -57,6 +61,8 @@ public class Movie implements Parcelable {
         this.popularity = popularity;
         this.userRating = userRating;
         this.releaseDate = releaseDate;
+
+        this.sortSetting = sortSetting;
     }
 
     public ContentValues toContentValues() {
@@ -68,6 +74,7 @@ public class Movie implements Parcelable {
         c.put(MovieProvider.Movie.KEY_POPULARITY, this.getPopularity());
         c.put(MovieProvider.Movie.KEY_USER_RATING, this.getUserRating());
         c.put(MovieProvider.Movie.KEY_RELEASE_DATE, this.getReleaseDate());
+        c.put(MovieProvider.Movie.KEY_SORT_SETTING, this.getSortSetting());
         return c;
     }
 
@@ -98,6 +105,8 @@ public class Movie implements Parcelable {
     public String getPosterPath() {
         return posterPath;
     }
+
+    public String getSortSetting() { return sortSetting; }
 
     @Override
     public String toString() {

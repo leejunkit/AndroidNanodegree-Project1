@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import co.x22media.popularmovies.R;
 import co.x22media.popularmovies.adapters.MovieGridAdapter;
+import co.x22media.popularmovies.helpers.SharedPreferencesUtility;
 import co.x22media.popularmovies.models.Movie;
 import co.x22media.popularmovies.provider.MovieProvider;
 import co.x22media.popularmovies.tasks.GetMoviesAsyncTask;
@@ -31,6 +32,7 @@ public class GridViewFragment extends Fragment
         implements AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     private final String LOG_TAG = GridViewFragment.class.getSimpleName();
+    private final int MOVIES_LOADER_ID = 0;
 
     private TextView mErrorView;
     private MovieGridAdapter mAdapter;
@@ -47,9 +49,10 @@ public class GridViewFragment extends Fragment
      */
 
     @Override
-    public void onDestroy(){
-        super.onDestroy();
-        mPrefs.unregisterOnSharedPreferenceChangeListener(mListener);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        //SharedPreferencesUtility.resetAllPreferences(getActivity());
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
     }
 
     @Override
@@ -57,7 +60,7 @@ public class GridViewFragment extends Fragment
         super.onResume();
 
         // get the current sort setting...
-        mCurrentSortSetting = mPrefs.getString(getString(R.string.pref_sort_order_key), null);
+        mCurrentSortSetting = SharedPreferencesUtility.getCurrentSortSetting(getActivity());
 
         // Register a listener for shared preference changes,
         // but don't register the listener if it is already registered!
@@ -65,11 +68,20 @@ public class GridViewFragment extends Fragment
             mListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
                 @Override
                 public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                    String newSortSetting = sharedPreferences.getString(getString(R.string.pref_sort_order_key),
-                            getString(R.string.pref_sort_order_values_default));
+                    String newSortSetting = SharedPreferencesUtility.getCurrentSortSetting(getActivity());
                     if (!newSortSetting.equals(mCurrentSortSetting)) {
-                        Log.d(LOG_TAG, "Preferences changed! Should reload data set.");
-                        refreshMoviesFromServer();
+                        Log.d(LOG_TAG, "Preferences changed! Current sort setting is " + newSortSetting);
+
+                        // check if we need to query the server
+                        if (!SharedPreferencesUtility.moviesCachedForSortSetting(getActivity(), newSortSetting)) {
+                            Log.d(LOG_TAG, "Sort setting " + newSortSetting + " has not been queried from the API. Querying now.");
+                            loadMoviesFromServer();
+                        }
+
+                        else {
+                            Log.d(LOG_TAG, "Sort setting " + newSortSetting + " has data locally. Just restarting our loader.");
+                            restartLoader();
+                        }
                     }
                 }
             };
@@ -79,9 +91,12 @@ public class GridViewFragment extends Fragment
 
         // set the default setting if it is not set, triggering the refresh for a new install
         if (null == mCurrentSortSetting) {
-            SharedPreferences.Editor e = mPrefs.edit();
-            e.putString(getString(R.string.pref_sort_order_key), getString(R.string.pref_sort_order_values_default));
-            e.commit();
+            SharedPreferencesUtility.bootstrapSortSetting(getActivity());
+        }
+
+        else {
+            // there is a current sort setting, so we have bootstrapped the app with data
+            restartLoader();
         }
     }
 
@@ -107,6 +122,12 @@ public class GridViewFragment extends Fragment
         return rootView;
     }
 
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        mPrefs.unregisterOnSharedPreferenceChangeListener(mListener);
+    }
+
     /*
         Event handlers
      */
@@ -119,55 +140,18 @@ public class GridViewFragment extends Fragment
         //activity.showDetailViewForMovie(mAdapter.getItem(position));
     }
 
-    private Boolean refreshMoviesFromServer() {
-
-        // remove all movie objects in the database first
-        int rowsDeleted = getContext().getContentResolver()
-                .delete(MovieProvider.getMovieDirUri(), null, null);
-        Log.d(LOG_TAG, "Delete all movies: " + String.valueOf(rowsDeleted) + " rows deleted.");
-
-        // ensure onCreateLoader gets called again so the loader picks up any new sort order
-        getLoaderManager().restartLoader(0, null, this);
-
-        new GetMoviesAsyncTask(getActivity(), new GetMoviesAsyncTask.GetMoviesTaskCallback() {
-            @Override
-            public void onTaskDone(Exception e, Movie[] movies) {
-                if (null != e) {
-                    Log.w(LOG_TAG, "Exception occurred attempting to communicate with API.", e);
-                    mErrorView.setVisibility(View.VISIBLE);
-                }
-            }
-        }).execute();
-
-        return true;
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        // instantiate the loader
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        getLoaderManager().initLoader(0, null, this);
-    }
+    /*
+        LoaderManager.LoaderCallbacks<Cursor> method implementations
+     */
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        String sortOrder;
-        String defaultSortSetting = getString(R.string.pref_sort_order_values_default);
-        String currentSortSetting = mPrefs.getString(getString(R.string.pref_sort_order_key), null);
-        if (defaultSortSetting.equals(currentSortSetting)) {
-            sortOrder = MovieProvider.Movie.KEY_POPULARITY;
-        }
-
-        else {
-            sortOrder = MovieProvider.Movie.KEY_USER_RATING;
-        }
-
-        sortOrder += " DESC";
-
         Uri moviesUri = MovieProvider.getMovieDirUri();
-        return new CursorLoader(getActivity(), moviesUri, null, null, null, sortOrder);
+        String selection = MovieProvider.Movie.KEY_SORT_SETTING + " = ?";
+        String currentSortSetting = SharedPreferencesUtility.getCurrentSortSetting(getActivity());
+        String[] selectionArgs = { currentSortSetting };
+        String sortOrder = SharedPreferencesUtility.getCursorSortOrderForCurrentSortSetting(getActivity());
+        return new CursorLoader(getActivity(), moviesUri, null, selection, selectionArgs, sortOrder);
     }
 
     @Override
@@ -191,5 +175,30 @@ public class GridViewFragment extends Fragment
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+    }
+
+    /*
+        Logic methods
+     */
+
+    private void restartLoader() {
+        getLoaderManager().restartLoader(MOVIES_LOADER_ID, null, this);
+    }
+
+    private Boolean loadMoviesFromServer() {
+        // ensure onCreateLoader gets called again so the loader picks up any new sort order
+        restartLoader();
+
+        new GetMoviesAsyncTask(getActivity(), new GetMoviesAsyncTask.GetMoviesTaskCallback() {
+            @Override
+            public void onTaskDone(Exception e, Movie[] movies) {
+                if (null != e) {
+                    Log.w(LOG_TAG, "Exception occurred attempting to communicate with API.", e);
+                    mErrorView.setVisibility(View.VISIBLE);
+                }
+            }
+        }).execute();
+
+        return true;
     }
 }

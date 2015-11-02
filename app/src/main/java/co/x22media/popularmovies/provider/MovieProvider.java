@@ -21,7 +21,7 @@ public class MovieProvider extends AbstractProvider {
 
     @Override
     protected int getSchemaVersion() {
-        return 1;
+        return 2;
     }
 
     public static Uri getMovieDirUri() {
@@ -37,6 +37,9 @@ public class MovieProvider extends AbstractProvider {
 
         @Column(value = Column.FieldType.INTEGER, primaryKey = true)
         public static final String KEY_ID = "_id";
+
+        @Column(value = Column.FieldType.TEXT, since = 2)
+        public static final String KEY_SORT_SETTING = "sort_setting";
 
         @Column(Column.FieldType.TEXT)
         public static final String KEY_TITLE = "title";
@@ -56,5 +59,7 @@ public class MovieProvider extends AbstractProvider {
         @Column(Column.FieldType.TEXT)
         public static final String KEY_POSTER_PATH = "poster_path";
 
+        @Column(value = Column.FieldType.INTEGER, since = 3)
+        public static final String KEY_FAVORITE = "favorite";
     }
 }
