@@ -14,18 +14,15 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:drawableTop="@drawable/ic_favorite_black_24dp"
-        android:drawableTint="#ff0000"
-        android:textColor="#666666"
-        android:drawablePadding="6sp"
-        android:id="@+id/favoriteButton"
-        android:text="Make Favorite" />
+        android:id="@+id/favorite_button"
+        android:text="@string/movie_not_favorited_btn_text"
+        android:onClick="favoriteButtonClicked" />
 
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/movie_poster_image_view"
-        android:layout_below="@+id/favoriteButton"
+        android:layout_below="@+id/favorite_button"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginTop="18sp" />

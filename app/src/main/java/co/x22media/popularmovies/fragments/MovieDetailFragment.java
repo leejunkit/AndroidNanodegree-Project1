@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -32,6 +33,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     public static final String DETAIL_URI = "URI";
     private static final int DETAIL_LOADER = 1;
 
+    private Button mFavoriteButton;
     private ImageView mImageView;
     private TextView mTitleTextView;
     private TextView mReleaseDateTextView;
@@ -61,7 +63,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
 
-        // find the ImageView
+        // find our views
+        mFavoriteButton = (Button)rootView.findViewById(R.id.favorite_button);
         mImageView = (ImageView)rootView.findViewById(R.id.movie_poster_image_view);
         mTitleTextView = (TextView)rootView.findViewById(R.id.movie_title_text_view);
         mReleaseDateTextView = (TextView)rootView.findViewById(R.id.movie_release_date_text_view);
@@ -72,12 +75,22 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     }
 
     private void bindViewToMovie(Movie m) {
+        if (m.getIsFavorited()) {
+            mFavoriteButton.setBackgroundColor(getResources().getColor(R.color.favorited_bg));
+            mFavoriteButton.setTextColor(getResources().getColor(R.color.favorited_text));
+            mFavoriteButton.setText(getString(R.string.movie_favorited_btn_text));
+        }
+
+        else {
+            mFavoriteButton.setBackgroundColor(getResources().getColor(R.color.not_favorited_bg));
+            mFavoriteButton.setTextColor(getResources().getColor(R.color.not_favorited_text));
+            mFavoriteButton.setText(getString(R.string.movie_not_favorited_btn_text));
+        }
+
         Picasso.with(getActivity())
                 .load(m.getDerivedPosterURL())
                 .placeholder(R.drawable.poster_placeholder)
                 .into(mImageView);
-
-        // find the Title TextView
 
         mTitleTextView.setText(m.getTitle());
 

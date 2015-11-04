@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="favorited_bg">#E91E63</color>
+    <color name="not_favorited_bg">#FCE4EC</color>
+    <color name="favorited_text">#FCE4EC</color>
+    <color name="not_favorited_text">#E91E63</color>
+</resources>

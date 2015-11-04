@@ -6,4 +6,6 @@
     <string name="null_synopsis_label">(no synopsis found)</string>
     <string name="rating_out_of_label">\u0020out of 10</string>
     <string name="error_http_label">An error occurred.\nYour Internet connection may also be down.</string>
+    <string name="movie_favorited_btn_text">You really like this movie!</string>
+    <string name="movie_not_favorited_btn_text">Mark as Favorite</string>
 </resources>

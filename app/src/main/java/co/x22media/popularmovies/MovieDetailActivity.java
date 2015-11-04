@@ -1,17 +1,23 @@
 package co.x22media.popularmovies;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import co.x22media.popularmovies.fragments.MovieDetailFragment;
+import co.x22media.popularmovies.provider.MovieProvider;
 
 
 public class MovieDetailActivity extends AppCompatActivity {
     private final String LOG_TAG = MovieDetailActivity.class.getSimpleName();
+    private Uri mUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,10 +26,8 @@ public class MovieDetailActivity extends AppCompatActivity {
         Intent i = getIntent();
         if (null != i) {
             uri = i.getData();
+            mUri = uri;
         }
-
-//        Movie m = getIntent().getParcelableExtra("movieParam");
-//        setTitle(m.getTitle());
 
         setContentView(R.layout.activity_movie_detail);
         if (savedInstanceState == null) {
@@ -63,5 +67,28 @@ public class MovieDetailActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void favoriteButtonClicked(View view) {
+        // check if movie is already favorited or not
+        String[] projection = { MovieProvider.Movie.KEY_FAVORITE };
+        Cursor c = getContentResolver().query(mUri, projection, null, null, null);
+        if (c.moveToFirst()) {
+            int favorited = c.getInt(0);
+            if (favorited == 0) {
+                ContentValues cv = new ContentValues();
+                cv.put(MovieProvider.Movie.KEY_FAVORITE, true);
+                int rowsUpdated = getContentResolver().update(mUri, cv, null, null);
+                Log.d(LOG_TAG, "Movie is favorited. (" + rowsUpdated + " rows updated)");
+            }
+
+            else {
+                ContentValues cv = new ContentValues();
+                cv.put(MovieProvider.Movie.KEY_FAVORITE, false);
+                int rowsUpdated = getContentResolver().update(mUri, cv, null, null);
+                Log.d(LOG_TAG, "Movie is unfavorited. (" + rowsUpdated + " rows updated)");
+            }
+        }
+
     }
 }

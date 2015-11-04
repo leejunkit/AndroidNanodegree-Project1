@@ -122,7 +122,8 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
                     popularity,
                     userRating,
                     releaseDate,
-                    mSortSetting);
+                    mSortSetting,
+                    false);
 
             movies.add(m);
         }

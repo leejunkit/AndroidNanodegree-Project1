@@ -21,7 +21,7 @@ public class MovieProvider extends AbstractProvider {
 
     @Override
     protected int getSchemaVersion() {
-        return 2;
+        return 3;
     }
 
     public static Uri getMovieDirUri() {

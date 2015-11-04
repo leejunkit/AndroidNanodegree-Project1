@@ -20,6 +20,7 @@ public class Movie implements Parcelable {
     private double userRating;
     private String releaseDate;
     private String sortSetting;
+    private Boolean isFavorited;
 
     public static Movie fromCursor(Cursor c) {
         final String LOG_TAG = Movie.class.getSimpleName();
@@ -32,6 +33,7 @@ public class Movie implements Parcelable {
         int idxUserRating = c.getColumnIndex(MovieProvider.Movie.KEY_USER_RATING);
         int idxReleaseDate = c.getColumnIndex(MovieProvider.Movie.KEY_RELEASE_DATE);
         int idxSortSetting = c.getColumnIndex(MovieProvider.Movie.KEY_SORT_SETTING);
+        int idxIsFavorited = c.getColumnIndex(MovieProvider.Movie.KEY_FAVORITE);
 
         return new Movie(
                 c.getInt(idxMovieID),
@@ -41,7 +43,8 @@ public class Movie implements Parcelable {
                 c.getDouble(idxPopularity),
                 c.getDouble(idxUserRating),
                 c.getString(idxReleaseDate),
-                c.getString(idxSortSetting));
+                c.getString(idxSortSetting),
+                1 == c.getInt(idxIsFavorited));
     }
 
     public Movie(int movieID,
@@ -51,18 +54,18 @@ public class Movie implements Parcelable {
                  double popularity,
                  double userRating,
                  String releaseDate,
-                 String sortSetting) {
+                 String sortSetting,
+                 Boolean isFavorited) {
 
         this.movieID = movieID;
         this.title = title;
         this.posterPath = posterPath;
-
         this.synopsis = synopsis;
         this.popularity = popularity;
         this.userRating = userRating;
         this.releaseDate = releaseDate;
-
         this.sortSetting = sortSetting;
+        this.isFavorited = isFavorited;
     }
 
     public ContentValues toContentValues() {
@@ -107,6 +110,10 @@ public class Movie implements Parcelable {
     }
 
     public String getSortSetting() { return sortSetting; }
+
+    public Boolean getIsFavorited() {
+        return isFavorited;
+    }
 
     public String getDerivedPosterURL() {
         String basePosterURL = "http://image.tmdb.org/t/p/w185";
