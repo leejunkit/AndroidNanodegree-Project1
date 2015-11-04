@@ -90,5 +90,7 @@ public class MovieDetailActivity extends AppCompatActivity {
             }
         }
 
+        c.close();
+
     }
 }
