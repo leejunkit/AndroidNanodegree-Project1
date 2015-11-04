@@ -37,7 +37,7 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
     private GetMoviesTaskCallback mCallback;
 
     public GetMoviesAsyncTask(Context context, GetMoviesTaskCallback callback) {
-
+        super();
         mContext = context;
 
         // get the API key
@@ -126,7 +126,9 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
                     userRating,
                     releaseDate,
                     mSortSetting,
-                    false);
+                    false,
+                    null,
+                    null);
 
             movies.add(m);
         }

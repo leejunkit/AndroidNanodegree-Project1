@@ -91,6 +91,9 @@ public class MovieDetailActivity extends AppCompatActivity {
         }
 
         c.close();
+    }
 
+    public void trailerButtonClicked(View view) {
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=1t0A_tZGrYw")));
     }
 }

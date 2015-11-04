@@ -29,6 +29,7 @@ import java.util.Calendar;
 
 import co.x22media.popularmovies.R;
 import co.x22media.popularmovies.models.Movie;
+import co.x22media.popularmovies.tasks.GetTrailersAndReviewsAsyncTask;
 
 /**
  * Created by kit on 21/10/15.
@@ -45,6 +46,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     private TextView mReleaseDateTextView;
     private TextView mRatingTextView;
     private TextView mSynopsisTextView;
+
+    private ImageView mMovieTrailerImageView;
 
     private ShareActionProvider mShareActionProvider;
 
@@ -103,6 +106,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         mReleaseDateTextView = (TextView)rootView.findViewById(R.id.movie_release_date_text_view);
         mRatingTextView = (TextView)rootView.findViewById(R.id.movie_rating_text_view);
         mSynopsisTextView = (TextView)rootView.findViewById(R.id.movie_synopsis_text_view);
+        mMovieTrailerImageView = (ImageView)rootView.findViewById(R.id.movie_trailer_image_view);
 
         return rootView;
     }
@@ -148,6 +152,19 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         else {
             mSynopsisTextView.setText(getString(R.string.null_synopsis_label));
         }
+
+        Picasso.with(getActivity())
+                .load("http://img.youtube.com/vi/1t0A_tZGrYw/maxresdefault.jpg")
+                .placeholder(R.drawable.poster_placeholder)
+                .into(mMovieTrailerImageView);
+
+        if (null != m.getReviewsJSONString()) {
+            Log.d(LOG_TAG, m.getReviewsJSONString());
+        }
+
+        if (null != m.getVideosJSONString()) {
+            Log.d(LOG_TAG, m.getVideosJSONString());
+        }
     }
 
     @Override
@@ -171,6 +188,12 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         if (data.moveToFirst()) {
             Movie m = Movie.fromCursor(data);
             if (null != m) {
+                // check if we need to make a query to get the reviews and videos data
+                if (null == m.getVideosJSONString() || null == m.getReviewsJSONString()) {
+                    GetTrailersAndReviewsAsyncTask task = new GetTrailersAndReviewsAsyncTask(getActivity());
+                    task.execute((long)m.getMovieID());
+                }
+
                 bindViewToMovie(m);
             }
         }

@@ -21,6 +21,8 @@ public class Movie implements Parcelable {
     private String releaseDate;
     private String sortSetting;
     private Boolean isFavorited;
+    private String reviewsJSONString;
+    private String videosJSONString;
 
     public static Movie fromCursor(Cursor c) {
         final String LOG_TAG = Movie.class.getSimpleName();
@@ -34,6 +36,8 @@ public class Movie implements Parcelable {
         int idxReleaseDate = c.getColumnIndex(MovieProvider.Movie.KEY_RELEASE_DATE);
         int idxSortSetting = c.getColumnIndex(MovieProvider.Movie.KEY_SORT_SETTING);
         int idxIsFavorited = c.getColumnIndex(MovieProvider.Movie.KEY_FAVORITE);
+        int idxReviewsJSONString = c.getColumnIndex(MovieProvider.Movie.KEY_REVIEWS_JSON);
+        int idxVideosJSONString = c.getColumnIndex(MovieProvider.Movie.KEY_VIDEOS_JSON);
 
         return new Movie(
                 c.getInt(idxMovieID),
@@ -44,7 +48,9 @@ public class Movie implements Parcelable {
                 c.getDouble(idxUserRating),
                 c.getString(idxReleaseDate),
                 c.getString(idxSortSetting),
-                1 == c.getInt(idxIsFavorited));
+                1 == c.getInt(idxIsFavorited),
+                c.getString(idxReviewsJSONString),
+                c.getString(idxVideosJSONString));
     }
 
     public Movie(int movieID,
@@ -55,7 +61,9 @@ public class Movie implements Parcelable {
                  double userRating,
                  String releaseDate,
                  String sortSetting,
-                 Boolean isFavorited) {
+                 Boolean isFavorited,
+                 String reviewsJSONString,
+                 String videosJSONString) {
 
         this.movieID = movieID;
         this.title = title;
@@ -66,6 +74,8 @@ public class Movie implements Parcelable {
         this.releaseDate = releaseDate;
         this.sortSetting = sortSetting;
         this.isFavorited = isFavorited;
+        this.reviewsJSONString = reviewsJSONString;
+        this.videosJSONString = videosJSONString;
     }
 
     public ContentValues toContentValues() {
@@ -113,6 +123,14 @@ public class Movie implements Parcelable {
 
     public Boolean getIsFavorited() {
         return isFavorited;
+    }
+
+    public String getReviewsJSONString() {
+        return reviewsJSONString;
+    }
+
+    public String getVideosJSONString() {
+        return videosJSONString;
     }
 
     public String getDerivedPosterURL() {
