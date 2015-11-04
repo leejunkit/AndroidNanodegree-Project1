@@ -1,13 +1,13 @@
 package co.x22media.popularmovies;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import co.x22media.popularmovies.fragments.GridViewFragment;
-import co.x22media.popularmovies.models.Movie;
 
 public class MovieGridActivity extends AppCompatActivity {
     private final String LOG_TAG = MovieGridActivity.class.getSimpleName();
@@ -63,9 +63,9 @@ public class MovieGridActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void showDetailViewForMovie(Movie movie) {
+    public void showDetailViewWithUri(Uri uri) {
         Intent i = new Intent(this, co.x22media.popularmovies.MovieDetailActivity.class);
-        i.putExtra("movieParam", movie);
+        i.setData(uri);
         startActivity(i);
     }
 }

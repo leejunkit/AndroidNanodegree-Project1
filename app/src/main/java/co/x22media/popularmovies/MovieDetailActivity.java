@@ -1,12 +1,13 @@
 package co.x22media.popularmovies;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import co.x22media.popularmovies.fragments.MovieDetailFragment;
-import co.x22media.popularmovies.models.Movie;
 
 
 public class MovieDetailActivity extends AppCompatActivity {
@@ -15,19 +16,26 @@ public class MovieDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Uri uri = null;
+        Intent i = getIntent();
+        if (null != i) {
+            uri = i.getData();
+        }
 
-        Movie m = getIntent().getParcelableExtra("movieParam");
-        setTitle(m.getTitle());
+//        Movie m = getIntent().getParcelableExtra("movieParam");
+//        setTitle(m.getTitle());
 
         setContentView(R.layout.activity_movie_detail);
         if (savedInstanceState == null) {
 
-            // create the fragment and put the Movie object inside
-            // (I still can't believe I can't simply pass objects via constructor parameters)
+            // create the fragment and put the Movie URI inside
             MovieDetailFragment frag = new MovieDetailFragment();
-            Bundle b = new Bundle();
-            b.putParcelable("movieParam", m);
-            frag.setArguments(b);
+
+            if (null != uri) {
+                Bundle b = new Bundle();
+                b.putParcelable(MovieDetailFragment.DETAIL_URI, uri);
+                frag.setArguments(b);
+            }
 
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.movie_detail_scroll_container, frag)

@@ -108,6 +108,11 @@ public class Movie implements Parcelable {
 
     public String getSortSetting() { return sortSetting; }
 
+    public String getDerivedPosterURL() {
+        String basePosterURL = "http://image.tmdb.org/t/p/w185";
+        return basePosterURL + this.getPosterPath();
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();

@@ -18,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import co.x22media.popularmovies.MovieGridActivity;
 import co.x22media.popularmovies.R;
 import co.x22media.popularmovies.adapters.MovieGridAdapter;
 import co.x22media.popularmovies.helpers.SharedPreferencesUtility;
@@ -134,10 +135,13 @@ public class GridViewFragment extends Fragment
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        // fragments are supposed to be reusable views, so we put the
-        // showMovieDetail method in the Activity instead
-       // MovieGridActivity activity = (MovieGridActivity) getActivity();
-        //activity.showDetailViewForMovie(mAdapter.getItem(position));
+        Cursor c = (Cursor)parent.getItemAtPosition(position);
+        if (null != c) {
+            long movieID = c.getLong(c.getColumnIndex(MovieProvider.Movie.KEY_ID));
+            Uri uri = MovieProvider.buildMovieUri(movieID);
+            Log.d(LOG_TAG, uri.toString());
+            ((MovieGridActivity) getActivity()).showDetailViewWithUri(uri);
+        }
     }
 
     /*
