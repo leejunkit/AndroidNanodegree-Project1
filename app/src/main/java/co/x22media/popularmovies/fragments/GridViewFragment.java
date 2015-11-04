@@ -73,8 +73,13 @@ public class GridViewFragment extends Fragment
                     if (!newSortSetting.equals(mCurrentSortSetting)) {
                         Log.d(LOG_TAG, "Preferences changed! Current sort setting is " + newSortSetting);
 
+                        // handle if the sort setting is to filter favorites only
+                        if (newSortSetting.equals(getString(R.string.pref_sort_setting_values_favorities))) {
+                            restartLoader();
+                        }
+
                         // check if we need to query the server
-                        if (!SharedPreferencesUtility.moviesCachedForSortSetting(getActivity(), newSortSetting)) {
+                        else if (!SharedPreferencesUtility.moviesCachedForSortSetting(getActivity(), newSortSetting)) {
                             Log.d(LOG_TAG, "Sort setting " + newSortSetting + " has not been queried from the API. Querying now.");
                             loadMoviesFromServer();
                         }
@@ -151,10 +156,21 @@ public class GridViewFragment extends Fragment
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         Uri moviesUri = MovieProvider.getMovieDirUri();
-        String selection = MovieProvider.Movie.KEY_SORT_SETTING + " = ?";
-        String currentSortSetting = SharedPreferencesUtility.getCurrentSortSetting(getActivity());
-        String[] selectionArgs = { currentSortSetting };
-        String sortOrder = SharedPreferencesUtility.getCursorSortOrderForCurrentSortSetting(getActivity());
+        String selection, currentSortSetting, sortOrder = null;
+        String[] selectionArgs = { };
+
+        // handle favorites
+        if (SharedPreferencesUtility.getCurrentSortSetting(getActivity()).equals(getString(R.string.pref_sort_setting_values_favorities))) {
+            selection = MovieProvider.Movie.KEY_FAVORITE + " = 1";
+        }
+
+        else {
+            selection = MovieProvider.Movie.KEY_SORT_SETTING + " = ?";
+            currentSortSetting = SharedPreferencesUtility.getCurrentSortSetting(getActivity());
+            selectionArgs = new String[]{ currentSortSetting };
+            sortOrder = SharedPreferencesUtility.getCursorSortOrderForCurrentSortSetting(getActivity());
+        }
+
         return new CursorLoader(getActivity(), moviesUri, null, selection, selectionArgs, sortOrder);
     }
 

@@ -9,12 +9,15 @@
     <string-array name="pref_sort_setting_titles">
         <item>Most Popular</item>
         <item>Highest Rated</item>
+        <item>Show Favorites Only</item>
     </string-array>
 
     <string-array name="pref_sort_setting_values">
         <item>popularity.desc</item>
         <item>vote_average.desc</item>
+        <item>favorites</item>
     </string-array>
 
     <string name="pref_sort_setting_values_default">popularity.desc</string>
+    <string name="pref_sort_setting_values_favorities">favorites</string>
 </resources>

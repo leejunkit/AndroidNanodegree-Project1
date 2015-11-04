@@ -45,6 +45,9 @@ public class GetMoviesAsyncTask extends AsyncTask<Void, Void, Movie[]> {
 
         // get the saved sort order
         mSortSetting = SharedPreferencesUtility.getCurrentSortSetting(mContext);
+        if (mContext.getString(R.string.pref_sort_setting_values_favorities).equals(mSortSetting)) {
+            throw new IllegalStateException("Trying to query the server for a sort setting of 'favorities'. This is definitely an error.");
+        }
 
         mCallback = callback;
     }
