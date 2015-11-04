@@ -2,6 +2,7 @@
     <string name="app_name">Popular Movies</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_movie_detail">Movie Detail</string>
+    <string name="action_share">Share</string>
     <string name="null_release_date_label">(no release date found)</string>
     <string name="null_synopsis_label">(no synopsis found)</string>
     <string name="rating_out_of_label">\u0020out of 10</string>
