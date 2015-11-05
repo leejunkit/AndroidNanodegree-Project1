@@ -102,7 +102,15 @@ public class GridViewFragment extends Fragment
 
         else {
             // there is a current sort setting, so we have bootstrapped the app with data
-            restartLoader();
+            if (null == getLoaderManager().getLoader(MOVIES_LOADER_ID)) {
+                restartLoader();
+            }
+
+            else {
+                // initLoader also reuses a loader if it already exists, so we get
+                // to persist the position of the GridView for free
+                getLoaderManager().initLoader(MOVIES_LOADER_ID, null, this);
+            }
         }
     }
 
