@@ -11,7 +11,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import co.x22media.popularmovies.adapters.TrailerViewTag;
 import co.x22media.popularmovies.fragments.MovieDetailFragment;
+import co.x22media.popularmovies.helpers.ExternalURLBuilder;
 import co.x22media.popularmovies.provider.MovieProvider;
 
 
@@ -94,6 +96,9 @@ public class MovieDetailActivity extends AppCompatActivity {
     }
 
     public void trailerButtonClicked(View view) {
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=1t0A_tZGrYw")));
+        // get the youtube id from the view's tag
+        TrailerViewTag vh = (TrailerViewTag) view.getTag();
+        Uri uri = ExternalURLBuilder.buildYoutubeLinkWithYoutubeId(vh.youtubeID);
+        startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
 }

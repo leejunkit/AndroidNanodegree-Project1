@@ -19,15 +19,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import co.x22media.popularmovies.R;
+import co.x22media.popularmovies.adapters.MovieVideosAdapter;
 import co.x22media.popularmovies.models.Movie;
 import co.x22media.popularmovies.tasks.GetTrailersAndReviewsAsyncTask;
 
@@ -47,7 +52,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     private TextView mRatingTextView;
     private TextView mSynopsisTextView;
 
-    private ImageView mMovieTrailerImageView;
+    private LinearLayout mVideosLinearLayout;
+
 
     private ShareActionProvider mShareActionProvider;
 
@@ -106,7 +112,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         mReleaseDateTextView = (TextView)rootView.findViewById(R.id.movie_release_date_text_view);
         mRatingTextView = (TextView)rootView.findViewById(R.id.movie_rating_text_view);
         mSynopsisTextView = (TextView)rootView.findViewById(R.id.movie_synopsis_text_view);
-        mMovieTrailerImageView = (ImageView)rootView.findViewById(R.id.movie_trailer_image_view);
+        mVideosLinearLayout = (LinearLayout)rootView.findViewById(R.id.videos_linear_layout);
 
         return rootView;
     }
@@ -153,17 +159,21 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             mSynopsisTextView.setText(getString(R.string.null_synopsis_label));
         }
 
-        Picasso.with(getActivity())
-                .load("http://img.youtube.com/vi/1t0A_tZGrYw/maxresdefault.jpg")
-                .placeholder(R.drawable.poster_placeholder)
-                .into(mMovieTrailerImageView);
-
         if (null != m.getReviewsJSONString()) {
             Log.d(LOG_TAG, m.getReviewsJSONString());
         }
 
         if (null != m.getVideosJSONString()) {
             Log.d(LOG_TAG, m.getVideosJSONString());
+            try {
+                JSONArray objs = new JSONArray(m.getVideosJSONString());
+                MovieVideosAdapter adapter = new MovieVideosAdapter(getContext(), objs);
+                adapter.renderVideosIntoLinearLayout(mVideosLinearLayout);
+            }
+
+            catch (JSONException e) {
+                Log.e(LOG_TAG, "Shit.", e);
+            }
         }
     }
 
