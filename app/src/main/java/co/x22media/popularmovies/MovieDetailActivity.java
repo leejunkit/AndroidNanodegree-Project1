@@ -44,7 +44,7 @@ public class MovieDetailActivity extends AppCompatActivity {
             }
 
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.movie_detail_scroll_container, frag)
+                    .add(R.id.movie_detail_root_view, frag)
                     .commit();
         }
     }
