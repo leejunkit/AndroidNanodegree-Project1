@@ -5,6 +5,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -13,6 +17,7 @@ import android.view.View;
 
 import co.x22media.popularmovies.adapters.TrailerViewTag;
 import co.x22media.popularmovies.fragments.MovieDetailFragment;
+import co.x22media.popularmovies.fragments.MovieReviewsFragment;
 import co.x22media.popularmovies.helpers.ExternalURLBuilder;
 import co.x22media.popularmovies.provider.MovieProvider;
 
@@ -20,33 +25,72 @@ import co.x22media.popularmovies.provider.MovieProvider;
 public class MovieDetailActivity extends AppCompatActivity {
     private final String LOG_TAG = MovieDetailActivity.class.getSimpleName();
     private Uri mUri;
+    private final String[] TAB_TITLES = { "DETAILS", "REVIEWS" };
+    private FragmentPagerAdapter mPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Uri uri = null;
-        Intent i = getIntent();
-        if (null != i) {
-            uri = i.getData();
-            mUri = uri;
+        if (null != savedInstanceState) {
+            String mUriString = savedInstanceState.getString("mUri");
+            mUri = Uri.parse(mUriString);
+        }
+
+        else {
+            Uri uri;
+            Intent i = getIntent();
+            if (null != i) {
+                uri = i.getData();
+                mUri = uri;
+            }
         }
 
         setContentView(R.layout.activity_movie_detail);
-        if (savedInstanceState == null) {
+        mPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
+            @Override
+            public Fragment getItem(int position) {
+                if (position == 0) {
+                    MovieDetailFragment frag = new MovieDetailFragment();
 
-            // create the fragment and put the Movie URI inside
-            MovieDetailFragment frag = new MovieDetailFragment();
+                    if (null != mUri) {
+                        Bundle b = new Bundle();
+                        b.putParcelable(MovieDetailFragment.DETAIL_URI, mUri);
+                        frag.setArguments(b);
+                    }
 
-            if (null != uri) {
-                Bundle b = new Bundle();
-                b.putParcelable(MovieDetailFragment.DETAIL_URI, uri);
-                frag.setArguments(b);
+                    return frag;
+                }
+
+                else {
+                    MovieReviewsFragment frag = new MovieReviewsFragment();
+                    return frag;
+                }
             }
 
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.movie_detail_root_view, frag)
-                    .commit();
-        }
+            @Override
+            public int getCount() {
+                return 2;
+            }
+
+            @Override
+            public String getPageTitle(int position) {
+                return TAB_TITLES[position];
+            }
+        };
+
+        ViewPager viewPager = (ViewPager) findViewById(R.id.movie_detail_view_pager);
+        viewPager.setAdapter(mPagerAdapter);
+
+        TabLayout tabLayout = (TabLayout)findViewById(R.id.movie_detail_tabs);
+        tabLayout.setTabsFromPagerAdapter(mPagerAdapter);
+
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("mUri", mUri.toString());
+        super.onSaveInstanceState(outState);
     }
 
     @Override

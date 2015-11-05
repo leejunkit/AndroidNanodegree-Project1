@@ -9,4 +9,7 @@
     <string name="error_http_label">An error occurred.\nYour Internet connection may also be down.</string>
     <string name="movie_favorited_btn_text">You really like this movie!</string>
     <string name="movie_not_favorited_btn_text">Mark as Favorite</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

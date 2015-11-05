@@ -67,7 +67,19 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        if (null != savedInstanceState) {
+            String mUriString = savedInstanceState.getString("mUri");
+            mUri = Uri.parse(mUriString);
+        }
+
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString("mUri", mUri.toString());
+        super.onSaveInstanceState(outState);
     }
 
     @Override
