@@ -49,22 +49,24 @@ public class MovieDetailActivity extends AppCompatActivity {
         mPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
+
+                Fragment frag;
+                Bundle b = new Bundle();
+
+                if (null != mUri) {
+                    b.putParcelable(MovieDetailFragment.DETAIL_URI, mUri);
+                }
+
                 if (position == 0) {
-                    MovieDetailFragment frag = new MovieDetailFragment();
-
-                    if (null != mUri) {
-                        Bundle b = new Bundle();
-                        b.putParcelable(MovieDetailFragment.DETAIL_URI, mUri);
-                        frag.setArguments(b);
-                    }
-
-                    return frag;
+                    frag = new MovieDetailFragment();
                 }
 
                 else {
-                    MovieReviewsFragment frag = new MovieReviewsFragment();
-                    return frag;
+                    frag = new MovieReviewsFragment();
                 }
+
+                frag.setArguments(b);
+                return frag;
             }
 
             @Override

@@ -84,6 +84,7 @@ public class MovieVideosAdapter extends ArrayAdapter<JSONArray> {
 
 
     public void renderVideosIntoLinearLayout(LinearLayout layout) {
+        layout.removeAllViewsInLayout();
         int count = getCount();
         for (int i = 0; i < count; i++) {
             View v = getView(i, null, layout);

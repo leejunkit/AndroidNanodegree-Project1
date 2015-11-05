@@ -23,7 +23,6 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:id="@+id/favorite_button"
-            android:text="@string/movie_not_favorited_btn_text"
             android:onClick="favoriteButtonClicked" />
 
         <ImageView
@@ -39,7 +38,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Title Placeholder"
             android:id="@+id/movie_title_text_view"
             android:layout_alignTop="@+id/movie_poster_image_view"
             android:layout_toRightOf="@+id/movie_poster_image_view"
@@ -51,7 +49,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Release Date Placeholder"
             android:id="@+id/movie_release_date_text_view"
             android:layout_below="@+id/movie_title_text_view"
             android:layout_alignLeft="@+id/movie_title_text_view"
@@ -63,7 +60,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Rating Placeholder"
             android:id="@+id/movie_rating_text_view"
             android:layout_below="@+id/movie_release_date_text_view"
             android:layout_alignLeft="@+id/movie_release_date_text_view"
@@ -74,7 +70,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Synopsis Placeholder"
             android:id="@+id/movie_synopsis_text_view"
             android:layout_below="@+id/movie_poster_image_view"
             android:layout_alignLeft="@+id/movie_poster_image_view"
