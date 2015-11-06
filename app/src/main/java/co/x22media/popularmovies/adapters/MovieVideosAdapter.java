@@ -22,7 +22,7 @@ import co.x22media.popularmovies.helpers.ExternalURLBuilder;
 /**
  * Created by kit on 4/11/15.
  */
-public class MovieVideosAdapter extends ArrayAdapter<JSONArray> {
+public class MovieVideosAdapter extends ArrayAdapter<JSONObject> {
     private final String LOG_TAG = MovieVideosAdapter.class.getSimpleName();
     private JSONArray mObjects;
     private Context mContext;
@@ -36,6 +36,19 @@ public class MovieVideosAdapter extends ArrayAdapter<JSONArray> {
     @Override
     public int getCount() {
         return mObjects.length();
+    }
+
+    @Override
+    public JSONObject getItem(int position) {
+        try {
+            return mObjects.getJSONObject(position);
+        }
+
+        catch (JSONException e) {
+            Log.e(LOG_TAG, "JSONException: ", e);
+            return null;
+        }
+
     }
 
     @Override

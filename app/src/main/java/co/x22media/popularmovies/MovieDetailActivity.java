@@ -8,8 +8,10 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +29,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     private Uri mUri;
     private final String[] TAB_TITLES = { "DETAILS", "REVIEWS" };
     private FragmentPagerAdapter mPagerAdapter;
+    private ShareActionProvider mShareActionProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +102,13 @@ public class MovieDetailActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_movie_detail, menu);
+
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        // Get the provider and hold onto it to set/change the share intent.
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
         return true;
     }
 
@@ -146,5 +156,18 @@ public class MovieDetailActivity extends AppCompatActivity {
         TrailerViewTag vh = (TrailerViewTag) view.getTag();
         Uri uri = ExternalURLBuilder.buildYoutubeLinkWithYoutubeId(vh.youtubeID);
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
+    }
+
+    public void setShareableTrailer(String youtubeId) {
+        mShareActionProvider.setShareIntent(createTrailerShareIntent(youtubeId));
+    }
+
+    private Intent createTrailerShareIntent(String youtubeId) {
+        Uri link = ExternalURLBuilder.buildYoutubeLinkWithYoutubeId(youtubeId);
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, link.toString());
+        return shareIntent;
     }
 }
