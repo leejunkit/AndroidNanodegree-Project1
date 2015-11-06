@@ -28,7 +28,6 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
     private static final int REVIEWS_LOADER = 1;
     private Uri mUri;
     private ListView mListView;
-    private ArrayAdapter<JSONObject> mArrayAdapter;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
