@@ -14,20 +14,17 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import co.x22media.popularmovies.MovieDetailActivity;
 import co.x22media.popularmovies.R;
 import co.x22media.popularmovies.adapters.MovieVideosAdapter;
 import co.x22media.popularmovies.models.Movie;
@@ -42,7 +39,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     public static final String DETAIL_URI = "URI";
     private static final int DETAIL_LOADER = 1;
 
-    private ScrollView mScrollView;
     private Button mFavoriteButton;
     private ImageView mImageView;
     private TextView mTitleTextView;
@@ -67,8 +63,17 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+        getLoaderManager().destroyLoader(DETAIL_LOADER);
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putString("mUri", mUri.toString());
+        if (null != mUri) {
+            outState.putString("mUri", mUri.toString());
+        }
+
         super.onSaveInstanceState(outState);
     }
 
@@ -84,7 +89,6 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
 
         // find our views
-        mScrollView = (ScrollView)rootView.findViewById(R.id.movie_detail_scroll_container);
         mFavoriteButton = (Button)rootView.findViewById(R.id.favorite_button);
         mImageView = (ImageView)rootView.findViewById(R.id.movie_poster_image_view);
         mTitleTextView = (TextView)rootView.findViewById(R.id.movie_title_text_view);
@@ -97,6 +101,8 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     }
 
     private void bindViewToMovie(Movie m) {
+        mFavoriteButton.setVisibility(View.VISIBLE);
+        mFavoriteButton.setTag(mUri);
         if (m.getIsFavorited()) {
             mFavoriteButton.setBackgroundColor(getResources().getColor(R.color.favorited_bg));
             mFavoriteButton.setTextColor(getResources().getColor(R.color.favorited_text));
@@ -132,30 +138,15 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
 
         if (null != m.getSynopsis()) {
             mSynopsisTextView.setText(m.getSynopsis());
-        }
-
-        else {
+        } else {
             mSynopsisTextView.setText(getString(R.string.null_synopsis_label));
         }
 
-        if (null != m.getReviewsJSONString()) {
-            Log.d(LOG_TAG, m.getReviewsJSONString());
-        }
-
         if (null != m.getVideosJSONString()) {
-            Log.d(LOG_TAG, m.getVideosJSONString());
             try {
                 JSONArray objs = new JSONArray(m.getVideosJSONString());
                 MovieVideosAdapter adapter = new MovieVideosAdapter(getContext(), objs);
                 adapter.renderVideosIntoLinearLayout(mVideosLinearLayout);
-
-                if (adapter.getCount() > 0) {
-                    JSONObject obj = adapter.getItem(0);
-                    if (null != obj) {
-                        MovieDetailActivity activity = (MovieDetailActivity)getActivity();
-                        activity.setShareableTrailer(obj.getString("key"));
-                    }
-                }
             }
 
             catch (JSONException e) {

@@ -1,17 +1,25 @@
 package co.x22media.popularmovies.fragments;
 
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import co.x22media.popularmovies.R;
+import co.x22media.popularmovies.helpers.MovieUtility;
+import co.x22media.popularmovies.models.Movie;
 
 /**
  * Created by kit on 6/11/15.
@@ -40,8 +48,39 @@ public class MovieDetailContainerFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.menu_movie_detail, menu);
+
+        // Retrieve the share menu item
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+
+        // Get the share provider and set the intent
+        ShareActionProvider provider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
+
+        if (null != mUri) {
+            Cursor c = getActivity().getContentResolver().query(mUri, null, null, null, null);
+            if (c != null && c.moveToFirst()) {
+                Movie m = Movie.fromCursor(c);
+                provider.setShareIntent(MovieUtility.getIntentForFirstVideoFromMovie(m));
+            }
+
+            c.close();
+        }
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putString("mUri", mUri.toString());
+        if (null != mUri) {
+            outState.putString("mUri", mUri.toString());
+        }
+
         super.onSaveInstanceState(outState);
     }
 

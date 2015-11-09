@@ -43,7 +43,10 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putString("mUri", mUri.toString());
+        if (null != mUri) {
+            outState.putString("mUri", mUri.toString());
+        }
+
         super.onSaveInstanceState(outState);
     }
 
@@ -108,6 +111,8 @@ public class MovieReviewsFragment extends Fragment implements LoaderManager.Load
                 }
             }
         }
+
+        data.close();
     }
 
     @Override

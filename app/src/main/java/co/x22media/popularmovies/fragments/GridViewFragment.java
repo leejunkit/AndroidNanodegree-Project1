@@ -36,11 +36,18 @@ public class GridViewFragment extends Fragment
     private final int MOVIES_LOADER_ID = 0;
 
     private TextView mErrorView;
+    private GridView mGridView;
     private MovieGridAdapter mAdapter;
 
     private SharedPreferences mPrefs;
     private String mCurrentSortSetting;
     private SharedPreferences.OnSharedPreferenceChangeListener mListener;
+
+    private boolean shouldSelectFirstMovie = true;
+
+    public interface Callback {
+        public void onItemSelected(Uri movieURI);
+    }
 
     public GridViewFragment() {
     }
@@ -124,14 +131,14 @@ public class GridViewFragment extends Fragment
         mErrorView = (TextView) rootView.findViewById(R.id.error_textview);
 
         // pull out the GridView
-        GridView gridView = (GridView) rootView.findViewById(R.id.gridView);
+        mGridView = (GridView) rootView.findViewById(R.id.gridView);
 
         // set the adapter
         mAdapter = new MovieGridAdapter(getActivity(), null, 0);
-        gridView.setAdapter(mAdapter);
+        mGridView.setAdapter(mAdapter);
 
         // set the onItemClick event
-        gridView.setOnItemClickListener(this);
+        mGridView.setOnItemClickListener(this);
 
         return rootView;
     }
@@ -145,6 +152,14 @@ public class GridViewFragment extends Fragment
     /*
         Event handlers
      */
+
+    public boolean isShouldSelectFirstMovie() {
+        return shouldSelectFirstMovie;
+    }
+
+    public void setShouldSelectFirstMovie(boolean shouldSelectFirstMovie) {
+        this.shouldSelectFirstMovie = shouldSelectFirstMovie;
+    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -190,6 +205,22 @@ public class GridViewFragment extends Fragment
         }
 
         mAdapter.swapCursor(data);
+
+        // Question: This does not work - I'll get an IllegalStateException
+        // when I try to make changes to fragments in onLoadFinished. How
+        // should I go about automatically pre-selecting the first movie
+        // when the database query comes back then?
+
+        /*
+        if (data.getCount() > 0) {
+            if (shouldSelectFirstMovie) {
+                mGridView.setSelection(0);
+                mGridView.setItemChecked(0, true);
+
+                onItemClick(mGridView, null, 0, 0);
+            }
+        }
+        */
     }
 
     @Override
