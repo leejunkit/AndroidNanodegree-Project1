@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -41,6 +42,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
     public static final String DETAIL_URI = "URI";
     private static final int DETAIL_LOADER = 1;
 
+    private ScrollView mScrollView;
     private Button mFavoriteButton;
     private ImageView mImageView;
     private TextView mTitleTextView;
@@ -82,6 +84,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
 
         // find our views
+        mScrollView = (ScrollView)rootView.findViewById(R.id.movie_detail_scroll_container);
         mFavoriteButton = (Button)rootView.findViewById(R.id.favorite_button);
         mImageView = (ImageView)rootView.findViewById(R.id.movie_poster_image_view);
         mTitleTextView = (TextView)rootView.findViewById(R.id.movie_title_text_view);

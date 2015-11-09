@@ -5,11 +5,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
@@ -18,17 +15,16 @@ import android.view.MenuItem;
 import android.view.View;
 
 import co.x22media.popularmovies.adapters.TrailerViewTag;
+import co.x22media.popularmovies.fragments.MovieDetailContainerFragment;
 import co.x22media.popularmovies.fragments.MovieDetailFragment;
-import co.x22media.popularmovies.fragments.MovieReviewsFragment;
 import co.x22media.popularmovies.helpers.ExternalURLBuilder;
 import co.x22media.popularmovies.provider.MovieProvider;
 
 
 public class MovieDetailActivity extends AppCompatActivity {
     private final String LOG_TAG = MovieDetailActivity.class.getSimpleName();
+
     private Uri mUri;
-    private final String[] TAB_TITLES = { "DETAILS", "REVIEWS" };
-    private FragmentPagerAdapter mPagerAdapter;
     private ShareActionProvider mShareActionProvider;
 
     @Override
@@ -49,47 +45,19 @@ public class MovieDetailActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_movie_detail);
-        mPagerAdapter = new FragmentPagerAdapter(getSupportFragmentManager()) {
-            @Override
-            public Fragment getItem(int position) {
 
-                Fragment frag;
-                Bundle b = new Bundle();
+        // set up the fragment
 
-                if (null != mUri) {
-                    b.putParcelable(MovieDetailFragment.DETAIL_URI, mUri);
-                }
+        Fragment f = new MovieDetailContainerFragment();
+        Bundle b = new Bundle();
+        b.putParcelable(MovieDetailFragment.DETAIL_URI, mUri);
+        f.setArguments(b);
 
-                if (position == 0) {
-                    frag = new MovieDetailFragment();
-                }
-
-                else {
-                    frag = new MovieReviewsFragment();
-                }
-
-                frag.setArguments(b);
-                return frag;
-            }
-
-            @Override
-            public int getCount() {
-                return 2;
-            }
-
-            @Override
-            public String getPageTitle(int position) {
-                return TAB_TITLES[position];
-            }
-        };
-
-        ViewPager viewPager = (ViewPager) findViewById(R.id.movie_detail_view_pager);
-        viewPager.setAdapter(mPagerAdapter);
-
-        TabLayout tabLayout = (TabLayout)findViewById(R.id.movie_detail_tabs);
-        tabLayout.setTabsFromPagerAdapter(mPagerAdapter);
-
-        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        if (null == savedInstanceState) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.movie_detail_container, f)
+                    .commit();
+        }
     }
 
     @Override
@@ -159,7 +127,9 @@ public class MovieDetailActivity extends AppCompatActivity {
     }
 
     public void setShareableTrailer(String youtubeId) {
-        mShareActionProvider.setShareIntent(createTrailerShareIntent(youtubeId));
+        if (null != mShareActionProvider) {
+            mShareActionProvider.setShareIntent(createTrailerShareIntent(youtubeId));
+        }
     }
 
     private Intent createTrailerShareIntent(String youtubeId) {

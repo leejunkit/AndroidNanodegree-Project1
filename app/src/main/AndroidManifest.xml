@@ -28,7 +28,8 @@
         </activity>
         <activity
             android:name=".MovieDetailActivity"
-            android:label="@string/title_activity_movie_detail">
+            android:label="@string/title_activity_movie_detail"
+            android:configChanges="orientation">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MovieGridActivity" />

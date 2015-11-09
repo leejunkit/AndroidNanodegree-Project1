@@ -17,19 +17,9 @@ public class MovieGridActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_grid);
-        if (savedInstanceState == null) {
-            mGridViewFragment = new GridViewFragment();
-        }
-
-        else {
-            mGridViewFragment = (GridViewFragment) getSupportFragmentManager().
-                    getFragment(savedInstanceState, "mGridViewFragment");
-        }
-
-        if (!mGridViewFragment.isAdded()) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, mGridViewFragment)
-                    .commit();
+        GridViewFragment f = (GridViewFragment) getSupportFragmentManager().findFragmentById(R.id.movie_grid_fragment_framelayout);
+        if (null != f) {
+            mGridViewFragment = f;
         }
     }
 
