@@ -134,7 +134,7 @@ public class MovieDetailFragment extends Fragment implements LoaderManager.Loade
             mReleaseDateTextView.setText(getString(R.string.null_release_date_label));
         }
 
-        mRatingTextView.setText(String.valueOf(m.getUserRating()) + getString(R.string.rating_out_of_label));
+        mRatingTextView.setText(getString(R.string.rating_out_of_text, m.getUserRating()));
 
         if (null != m.getSynopsis()) {
             mSynopsisTextView.setText(m.getSynopsis());

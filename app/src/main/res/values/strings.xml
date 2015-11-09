@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="rn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Popular Movies</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_movie_detail">Movie Detail</string>
@@ -9,7 +9,7 @@
     <string name="error_http_label">An error occurred.\nYour Internet connection may also be down.</string>
     <string name="movie_favorited_btn_text">You really like this movie!</string>
     <string name="movie_not_favorited_btn_text">Mark as Favorite</string>
-
+    <string name="rating_out_of_text"><xliff:g id="rating" example="4" >%s</xliff:g> out of 10</string>
 <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
